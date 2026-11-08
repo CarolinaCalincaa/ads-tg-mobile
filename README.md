@@ -1,17 +1,29 @@
-# produtividade_tcc
+# Produtividade Pessoal — Aplicativo Multiplataforma Flutter (`apps/mobile`)
 
-A new Flutter project.
+Cliente multiplataforma (**Android 8.0+**, **iOS 14.0+** e **Web SPA**) do **Sistema Integrado de Gestão de Produtividade Pessoal** (TCC — FATEC Campinas, 2026), construído com **Flutter 3**, **Riverpod**, **GoRouter**, **Dio** e o Design System **"Calma Cognitiva"**.
 
-## Getting Started
+## Documentação de Arquitetura
 
-This project is a starting point for a Flutter application.
+Consulte [**`ARCHITECTURE.md`**](./ARCHITECTURE.md) para detalhes completos sobre:
+- Estratégia evolutiva **MVP Online-First $\rightarrow$ Pós-MVP Offline-First (Épico 09)**;
+- Stack e versões instaladas;
+- Estrutura de pastas Clean Architecture (`core/`, `features/`, `shared/`);
+- Tokens e átomos visuais do Design System **"Calma Cognitiva"**;
+- Camada de rede (`DioClient`, `ApiExceptionMapper`, `Result<T>` / `AppFailure`);
+- Roteamento declarativo e `ResponsiveShellScaffold` de 4 abas (`Painel`, `Relatórios`, `Alertas`, `Config.`).
 
-A few resources to get you started if this is your first Flutter project:
+## Comandos Rápidos
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```powershell
+# Instalar dependências
+C:\src\flutter\bin\flutter.bat pub get
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Validar linter e tipos (0 issues)
+C:\src\flutter\bin\flutter.bat analyze
+
+# Executar suíte de testes unitários e de widgets
+C:\src\flutter\bin\flutter.bat test
+
+# Rodar no Chrome apontando para a API local
+C:\src\flutter\bin\flutter.bat run -d chrome --dart-define=API_BASE_URL=http://localhost:3000/api/v1
+```
