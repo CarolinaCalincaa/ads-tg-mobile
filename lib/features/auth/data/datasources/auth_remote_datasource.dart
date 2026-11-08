@@ -210,7 +210,8 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
     await dio.delete<dynamic>(
       '/usuarios/me',
       data: <String, dynamic>{
-        'confirmacao': confirmacao,
+        'confirmado': true,
+        'confirmacaoTexto': confirmacao,
       },
     );
   }
