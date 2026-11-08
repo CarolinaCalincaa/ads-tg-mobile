@@ -1,4 +1,4 @@
-# Produtividade Pessoal — Aplicativo Multiplataforma Flutter (`apps/mobile`)
+# ads-tg-mobile — Aplicativo Multiplataforma Flutter (`apps/ads-tg-mobile`)
 
 Cliente multiplataforma (**Android 8.0+**, **iOS 14.0+** e **Web SPA**) do **Sistema Integrado de Gestão de Produtividade Pessoal** (TCC — FATEC Campinas, 2026), construído com **Flutter 3**, **Riverpod**, **GoRouter**, **Dio** e o Design System **"Calma Cognitiva"**.
 
