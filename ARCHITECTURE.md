@@ -1,4 +1,4 @@
-# Arquitetura do Front-end Flutter (`apps/mobile`)
+# Arquitetura do Front-end Flutter (`ads-tg-mobile`)
 
 > **Arquivo vivo de arquitetura (`DEC-004`)**. Documenta a stack, estrutura de diretórios, camadas Clean Architecture, Design System "Calma Cognitiva", camada de rede, navegação declarativa e decisões locais do cliente multiplataforma (**Android, iOS e Web SPA**) do **Sistema Integrado de Gestão de Produtividade Pessoal** (TCC — FATEC Campinas, 2026).
 
@@ -6,7 +6,7 @@
 
 ## 1. Visão Geral e Estratégia Arquitetural
 
-O aplicativo `apps/mobile` (`produtividade_tcc`) adota **Clean Architecture Feature-First** combinada com a evolução planejada em 2 fases (`ADR-001` e `ADR-002`):
+O aplicativo `ads-tg-mobile` (`produtividade_tcc`) adota **Clean Architecture Feature-First** combinada com a evolução planejada em 2 fases (`ADR-001` e `ADR-002`):
 
 1. **Fase 1 — MVP Online-First (Épicos 01 a 08)**:
    - **Sem SQLite/Drift e sem Sync Engine local**.
