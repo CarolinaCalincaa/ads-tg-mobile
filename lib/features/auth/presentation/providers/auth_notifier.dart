@@ -198,7 +198,9 @@ class AuthNotifier extends Notifier<AuthState> {
           return false;
         }
         final GoogleSignInAuthentication auth = await account.authentication;
-        resolvedToken = auth.idToken ?? '';
+        resolvedToken = (auth.idToken != null && auth.idToken!.isNotEmpty)
+            ? auth.idToken!
+            : (auth.accessToken ?? '');
         if (resolvedToken.isEmpty) {
           state = const AuthState.error(
             UnauthorizedFailure(
