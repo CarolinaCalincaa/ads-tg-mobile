@@ -219,7 +219,7 @@ void main() {
         );
         await Future<void>.delayed(Duration.zero);
 
-        final bool googleOk = await notifier.loginWithGoogle();
+        final bool googleOk = await notifier.loginWithGoogle(mockEmail: 'carolina.google@fatec.sp.gov.br');
         expect(googleOk, isTrue);
         expect(fakeRemote.lastGoogleIdToken, startsWith('mock-google-token:'));
         expect(

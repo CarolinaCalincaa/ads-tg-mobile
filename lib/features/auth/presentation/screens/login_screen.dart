@@ -83,13 +83,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleGoogleLogin() async {
-    final bool success = await ref
-        .read(authNotifierProvider.notifier)
-        .loginWithGoogle(
-          mockEmail: _emailController.text.trim().isNotEmpty
-              ? _emailController.text.trim()
-              : null,
-        );
+    final bool success =
+        await ref.read(authNotifierProvider.notifier).loginWithGoogle();
 
     if (!mounted) {
       return;
@@ -97,6 +92,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (success) {
       GoRouter.maybeOf(context)?.go(AppRoutes.painel);
+    } else {
+      final String? message = ref.read(authNotifierProvider).errorMessage;
+      if (message != null && message.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.fatigueCritical,
+          ),
+        );
+      }
     }
   }
 
