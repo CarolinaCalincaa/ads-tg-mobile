@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:produtividade_tcc/app.dart';
 import 'package:produtividade_tcc/features/auth/domain/entities/usuario_entity.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:produtividade_tcc/features/painel_dia/data/repositories/painel_repository_impl.dart';
+
+import '../../helpers/fake_painel_repository.dart';
 
 void main() {
   setUpAll(() {
@@ -39,6 +42,9 @@ void main() {
                   ),
                 ),
               ),
+              painelRepositoryProvider.overrideWithValue(
+                FakePainelRepository(),
+              ),
             ],
             child: const ProdutividadeTccApp(),
           ),
@@ -50,7 +56,7 @@ void main() {
         expect(find.byType(NavigationRail), findsNothing);
 
         // Initial tab 0: Painel
-        expect(find.text('Seu Painel do Dia está pronto'), findsOneWidget);
+        expect(find.byKey(const Key('nova_atividade_fab')), findsOneWidget);
 
         // Navigate to Tab 1: Relatórios
         await tester.tap(find.text('Relatórios'));
@@ -70,7 +76,7 @@ void main() {
         // Navigate back to Tab 0: Painel
         await tester.tap(find.text('Painel'));
         await tester.pumpAndSettle();
-        expect(find.text('Seu Painel do Dia está pronto'), findsOneWidget);
+        expect(find.byKey(const Key('nova_atividade_fab')), findsOneWidget);
       },
     );
 
@@ -94,6 +100,9 @@ void main() {
                   ),
                 ),
               ),
+              painelRepositoryProvider.overrideWithValue(
+                FakePainelRepository(),
+              ),
             ],
             child: const ProdutividadeTccApp(),
           ),
@@ -105,7 +114,7 @@ void main() {
         expect(find.byType(NavigationBar), findsNothing);
 
         // Initial tab 0: Painel
-        expect(find.text('Seu Painel do Dia está pronto'), findsOneWidget);
+        expect(find.byKey(const Key('nova_atividade_fab')), findsOneWidget);
 
         // Navigate to Relatórios via NavigationRail
         await tester.tap(find.text('Relatórios'));
