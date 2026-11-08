@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:produtividade_tcc/core/router/responsive_shell_scaffold.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:produtividade_tcc/features/auth/presentation/screens/config_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/login_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/register_screen.dart';
@@ -178,15 +179,7 @@ GoRouter createAppRouter({
                   if (configBuilder != null) {
                     return configBuilder(context);
                   }
-                  return Scaffold(
-                    appBar: AppBar(title: const Text('Configurações')),
-                    body: const EmptyStateView(
-                      icon: Icons.settings_outlined,
-                      title: 'Preferências, Modelos & LGPD',
-                      description:
-                          'Ajuste suas horas diárias de sono (RN02), gerencie modelos de processos e controle seus dados.',
-                    ),
-                  );
+                  return const ConfigScreen();
                 },
               ),
             ],
