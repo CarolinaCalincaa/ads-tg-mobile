@@ -3,20 +3,130 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:produtividade_tcc/core/router/responsive_shell_scaffold.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
+import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
 
 /// Rotas nomeadas canônicas da aplicação.
 abstract final class AppRoutes {
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
+
   static const String painel = '/painel';
   static const String relatorios = '/relatorios';
   static const String alertas = '/alertas';
   static const String config = '/config';
+
+  static const Set<String> publicAuthRoutes = <String>{
+    login,
+    register,
+    forgotPassword,
+    resetPassword,
+  };
 }
 
-/// Constrói o [GoRouter] com `StatefulShellRoute.indexedStack` para as 4 abas principais.
-GoRouter createAppRouter({String initialLocation = AppRoutes.painel}) {
+/// Avalia a regra de redirecionamento de autenticação (`Auth Guard — E02-T03`).
+///
+/// - Usuários não autenticados são redirecionados para `/login` (exceto quando já estão em
+///   `/login`, `/register`, `/forgot-password` ou `/reset-password`).
+/// - Usuários autenticados que tentem acessar `/login` ou `/register` são redirecionados para `/painel`.
+String? evaluateAuthRedirect({
+  required AuthState authState,
+  required String matchedLocation,
+}) {
+  if (authState.status == AuthStatus.initial) {
+    return null;
+  }
+
+  final bool isAuthenticated = authState.isAuthenticated;
+  final bool isPublicRoute = AppRoutes.publicAuthRoutes.contains(
+    matchedLocation,
+  );
+
+  if (!isAuthenticated && !isPublicRoute) {
+    return AppRoutes.login;
+  }
+
+  if (isAuthenticated &&
+      (matchedLocation == AppRoutes.login ||
+          matchedLocation == AppRoutes.register)) {
+    return AppRoutes.painel;
+  }
+
+  return null;
+}
+
+/// Constrói o [GoRouter] com `StatefulShellRoute.indexedStack` para as 4 abas principais
+/// e proteção reativa de rotas via [AuthNotifier].
+GoRouter createAppRouter({
+  String initialLocation = AppRoutes.painel,
+  Listenable? refreshListenable,
+  AuthState Function()? readAuthState,
+  WidgetBuilder? loginBuilder,
+  WidgetBuilder? registerBuilder,
+  WidgetBuilder? forgotPasswordBuilder,
+  Widget Function(BuildContext context, String? initialEmail)?
+  resetPasswordBuilder,
+  WidgetBuilder? configBuilder,
+}) {
   return GoRouter(
     initialLocation: initialLocation,
+    refreshListenable: refreshListenable,
+    redirect: (BuildContext context, GoRouterState state) {
+      if (readAuthState == null) {
+        return null;
+      }
+      return evaluateAuthRedirect(
+        authState: readAuthState(),
+        matchedLocation: state.matchedLocation,
+      );
+    },
     routes: <RouteBase>[
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (BuildContext context, GoRouterState state) {
+          if (loginBuilder != null) {
+            return loginBuilder(context);
+          }
+          return const Scaffold(
+            body: Center(child: Text('Login')),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        builder: (BuildContext context, GoRouterState state) {
+          if (registerBuilder != null) {
+            return registerBuilder(context);
+          }
+          return const Scaffold(
+            body: Center(child: Text('Criar Conta')),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        builder: (BuildContext context, GoRouterState state) {
+          if (forgotPasswordBuilder != null) {
+            return forgotPasswordBuilder(context);
+          }
+          return const Scaffold(
+            body: Center(child: Text('Recuperar Senha')),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        builder: (BuildContext context, GoRouterState state) {
+          final String? email = state.uri.queryParameters['email'];
+          if (resetPasswordBuilder != null) {
+            return resetPasswordBuilder(context, email);
+          }
+          return const Scaffold(
+            body: Center(child: Text('Redefinir Senha')),
+          );
+        },
+      ),
       StatefulShellRoute.indexedStack(
         builder:
             (
@@ -86,6 +196,9 @@ GoRouter createAppRouter({String initialLocation = AppRoutes.painel}) {
               GoRoute(
                 path: AppRoutes.config,
                 builder: (BuildContext context, GoRouterState state) {
+                  if (configBuilder != null) {
+                    return configBuilder(context);
+                  }
                   return Scaffold(
                     appBar: AppBar(title: const Text('Configurações')),
                     body: const EmptyStateView(
@@ -105,7 +218,17 @@ GoRouter createAppRouter({String initialLocation = AppRoutes.painel}) {
   );
 }
 
-/// Provider global do [GoRouter].
+/// Provider global do [GoRouter] integrado ao guard de autenticação ([authNotifierProvider]).
 final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
-  return createAppRouter();
+  final RouterAuthRefreshNotifier refreshNotifier = RouterAuthRefreshNotifier(
+    ref,
+  );
+  ref.onDispose(refreshNotifier.dispose);
+
+  final GoRouter router = createAppRouter(
+    refreshListenable: refreshNotifier,
+    readAuthState: () => ref.read(authNotifierProvider),
+  );
+  ref.onDispose(router.dispose);
+  return router;
 });
