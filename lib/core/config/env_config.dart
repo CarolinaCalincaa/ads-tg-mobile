@@ -8,6 +8,25 @@ abstract final class EnvConfig {
     defaultValue: 'http://localhost:3000/api/v1',
   );
 
+  /// Client ID OAuth 2.0 do Google (opcional em dev quando mock está ativo).
+  static const String googleClientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+    defaultValue: '',
+  );
+
+  /// Client ID / Service ID OAuth 2.0 da Apple (opcional em dev quando mock está ativo).
+  static const String appleClientId = String.fromEnvironment(
+    'APPLE_CLIENT_ID',
+    defaultValue: '',
+  );
+
+  /// Habilita tokens OAuth simulados (`mock-google-token:<email>` / `mock-apple-token:<email>`)
+  /// em ambiente local de desenvolvimento (`ADR-005`).
+  static const bool oauthDevMockEnabled = bool.fromEnvironment(
+    'OAUTH_DEV_MOCK_ENABLED',
+    defaultValue: true,
+  );
+
   /// Timeout de conexão HTTP padrão (5 segundos).
   static const Duration connectTimeout = Duration(seconds: 5);
 
