@@ -11,7 +11,8 @@ abstract final class EnvConfig {
   /// Client ID OAuth 2.0 do Google (opcional em dev quando mock está ativo).
   static const String googleClientId = String.fromEnvironment(
     'GOOGLE_CLIENT_ID',
-    defaultValue: '',
+    defaultValue:
+        '699977329205-18v8siu77o9n3b5e6a07vglpnclob0bn.apps.googleusercontent.com',
   );
 
   /// Client ID / Service ID OAuth 2.0 da Apple (opcional em dev quando mock está ativo).

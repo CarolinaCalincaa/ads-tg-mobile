@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:produtividade_tcc/core/config/env_config.dart';
 import 'package:produtividade_tcc/core/error/app_failure.dart';
 import 'package:produtividade_tcc/core/error/result.dart';
@@ -173,12 +174,49 @@ class AuthNotifier extends Notifier<AuthState> {
     String? mockEmail,
   }) async {
     state = const AuthState.loading();
-    final String resolvedToken =
-        (idToken != null && idToken.trim().isNotEmpty)
-        ? idToken.trim()
-        : (EnvConfig.oauthDevMockEnabled || EnvConfig.googleClientId.isEmpty
-              ? 'mock-google-token:${(mockEmail != null && mockEmail.trim().isNotEmpty) ? mockEmail.trim() : 'carolina.google@fatec.sp.gov.br'}'
-              : '');
+
+    String resolvedToken = idToken?.trim() ?? '';
+
+    if (resolvedToken.isEmpty && EnvConfig.googleClientId.isNotEmpty) {
+      try {
+        final GoogleSignIn googleSignIn = GoogleSignIn(
+          clientId: kIsWeb ? EnvConfig.googleClientId : null,
+          serverClientId: !kIsWeb ? EnvConfig.googleClientId : null,
+          scopes: const <String>['email', 'profile', 'openid'],
+        );
+        final GoogleSignInAccount? account = await googleSignIn.signIn();
+        if (account == null) {
+          state = const AuthState.unauthenticated();
+          return false;
+        }
+        final GoogleSignInAuthentication auth = await account.authentication;
+        resolvedToken = auth.idToken ?? '';
+      } catch (e) {
+        if (!EnvConfig.oauthDevMockEnabled) {
+          state = AuthState.error(
+            NetworkFailure(
+              message:
+                  'Falha ao conectar com o serviço do Google: ${e.toString()}',
+            ),
+          );
+          return false;
+        }
+      }
+    }
+
+    if (resolvedToken.isEmpty) {
+      if (EnvConfig.oauthDevMockEnabled) {
+        resolvedToken =
+            'mock-google-token:${(mockEmail != null && mockEmail.trim().isNotEmpty) ? mockEmail.trim() : "carolina.google@fatec.sp.gov.br"}';
+      } else {
+        state = const AuthState.error(
+          UnauthorizedFailure(
+            message: 'Não foi possível obter o token de autenticação do Google.',
+          ),
+        );
+        return false;
+      }
+    }
 
     final Result<AuthSessionEntity> result = await _repository.loginWithGoogle(
       idToken: resolvedToken,
@@ -312,6 +350,15 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Encerra a sessão atual e redireciona para `/login`.
   Future<void> logout() async {
+    try {
+      if (EnvConfig.googleClientId.isNotEmpty) {
+        final GoogleSignIn googleSignIn = GoogleSignIn(
+          clientId: kIsWeb ? EnvConfig.googleClientId : null,
+          serverClientId: !kIsWeb ? EnvConfig.googleClientId : null,
+        );
+        await googleSignIn.signOut();
+      }
+    } catch (_) {}
     await _repository.logout();
     state = const AuthState.unauthenticated();
   }
