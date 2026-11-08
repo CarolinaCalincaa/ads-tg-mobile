@@ -9,6 +9,8 @@ import 'package:produtividade_tcc/features/auth/presentation/screens/forgot_pass
 import 'package:produtividade_tcc/features/auth/presentation/screens/login_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/register_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/screens/painel_dia_screen.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/screens/process_templates_screen.dart';
 
 /// Rotas nomeadas canônicas da aplicação.
 abstract final class AppRoutes {
@@ -21,6 +23,7 @@ abstract final class AppRoutes {
   static const String relatorios = '/relatorios';
   static const String alertas = '/alertas';
   static const String config = '/config';
+  static const String modelosProcessos = '/modelos-processos';
 
   static const Set<String> publicAuthRoutes = <String>{
     login,
@@ -83,6 +86,12 @@ GoRouter createAppRouter({
     },
     routes: <RouteBase>[
       GoRoute(
+        path: AppRoutes.modelosProcessos,
+        builder: (BuildContext context, GoRouterState state) {
+          return const ProcessTemplatesScreen();
+        },
+      ),
+      GoRoute(
         path: AppRoutes.login,
         builder: (BuildContext context, GoRouterState state) {
           return const LoginScreen();
@@ -122,15 +131,7 @@ GoRouter createAppRouter({
               GoRoute(
                 path: AppRoutes.painel,
                 builder: (BuildContext context, GoRouterState state) {
-                  return Scaffold(
-                    appBar: AppBar(title: const Text('Painel do Dia')),
-                    body: const EmptyStateView(
-                      icon: Icons.wb_sunny_outlined,
-                      title: 'Seu Painel do Dia está pronto',
-                      description:
-                          'A Linha do Tempo unificada de tarefas, compromissos e hábitos será conectada nos próximos épicos.',
-                    ),
-                  );
+                  return const PainelDiaScreen();
                 },
               ),
             ],
