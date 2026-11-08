@@ -3,11 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:produtividade_tcc/app.dart';
+import 'package:produtividade_tcc/features/auth/domain/entities/usuario_entity.dart';
+import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
 
 void main() {
   setUpAll(() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
+
+  const UsuarioEntity authenticatedTestUser = UsuarioEntity(
+    id: 'test-user-1',
+    nomeCompleto: 'Carolina Calinca',
+    email: 'carolina@fatec.sp.gov.br',
+    horasSonoDiarias: 8,
+  );
 
   group('ResponsiveShellScaffold & GoRouter 4-Tab Navigation (E01-T05)', () {
     testWidgets(
@@ -21,8 +30,17 @@ void main() {
         });
 
         await tester.pumpWidget(
-          const ProviderScope(
-            child: ProdutividadeTccApp(),
+          ProviderScope(
+            overrides: [
+              authNotifierProvider.overrideWith(
+                () => AuthNotifier(
+                  initialState: const AuthState.authenticated(
+                    authenticatedTestUser,
+                  ),
+                ),
+              ),
+            ],
+            child: const ProdutividadeTccApp(),
           ),
         );
         await tester.pumpAndSettle();
@@ -47,7 +65,7 @@ void main() {
         // Navigate to Tab 3: Config.
         await tester.tap(find.text('Config.'));
         await tester.pumpAndSettle();
-        expect(find.text('Preferências, Modelos & LGPD'), findsOneWidget);
+        expect(find.text('Configurações'), findsWidgets);
 
         // Navigate back to Tab 0: Painel
         await tester.tap(find.text('Painel'));
@@ -67,8 +85,17 @@ void main() {
         });
 
         await tester.pumpWidget(
-          const ProviderScope(
-            child: ProdutividadeTccApp(),
+          ProviderScope(
+            overrides: [
+              authNotifierProvider.overrideWith(
+                () => AuthNotifier(
+                  initialState: const AuthState.authenticated(
+                    authenticatedTestUser,
+                  ),
+                ),
+              ),
+            ],
+            child: const ProdutividadeTccApp(),
           ),
         );
         await tester.pumpAndSettle();
