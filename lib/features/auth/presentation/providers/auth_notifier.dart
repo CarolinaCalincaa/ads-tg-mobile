@@ -177,6 +177,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
     String resolvedToken = idToken?.trim() ?? '';
 
+    // Se mockEmail foi fornecido explicitamente em testes/dev com mock ativo
+    if (resolvedToken.isEmpty &&
+        mockEmail != null &&
+        mockEmail.trim().isNotEmpty &&
+        EnvConfig.oauthDevMockEnabled) {
+      resolvedToken = 'mock-google-token:${mockEmail.trim()}';
+    }
+
     if (resolvedToken.isEmpty && EnvConfig.googleClientId.isNotEmpty) {
       try {
         final GoogleSignIn googleSignIn = GoogleSignIn(
@@ -191,23 +199,29 @@ class AuthNotifier extends Notifier<AuthState> {
         }
         final GoogleSignInAuthentication auth = await account.authentication;
         resolvedToken = auth.idToken ?? '';
-      } catch (e) {
-        if (!EnvConfig.oauthDevMockEnabled) {
-          state = AuthState.error(
-            NetworkFailure(
+        if (resolvedToken.isEmpty) {
+          state = const AuthState.error(
+            UnauthorizedFailure(
               message:
-                  'Falha ao conectar com o serviço do Google: ${e.toString()}',
+                  'O Google não retornou um token de identificação (idToken). Verifique se o Client ID está autorizado para Web.',
             ),
           );
           return false;
         }
+      } catch (e) {
+        state = AuthState.error(
+          NetworkFailure(
+            message:
+                'Falha ao conectar com o serviço do Google: ${e.toString()}',
+          ),
+        );
+        return false;
       }
     }
 
     if (resolvedToken.isEmpty) {
-      if (EnvConfig.oauthDevMockEnabled) {
-        resolvedToken =
-            'mock-google-token:${(mockEmail != null && mockEmail.trim().isNotEmpty) ? mockEmail.trim() : "carolina.google@fatec.sp.gov.br"}';
+      if (EnvConfig.googleClientId.isEmpty && EnvConfig.oauthDevMockEnabled) {
+        resolvedToken = 'mock-google-token:carolina.google@fatec.sp.gov.br';
       } else {
         state = const AuthState.error(
           UnauthorizedFailure(
