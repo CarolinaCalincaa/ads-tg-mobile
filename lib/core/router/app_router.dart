@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:produtividade_tcc/core/router/responsive_shell_scaffold.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:produtividade_tcc/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:produtividade_tcc/features/auth/presentation/screens/login_screen.dart';
+import 'package:produtividade_tcc/features/auth/presentation/screens/register_screen.dart';
+import 'package:produtividade_tcc/features/auth/presentation/screens/reset_password_screen.dart';
 
 /// Rotas nomeadas canônicas da aplicação.
 abstract final class AppRoutes {
@@ -62,11 +66,6 @@ GoRouter createAppRouter({
   String initialLocation = AppRoutes.painel,
   Listenable? refreshListenable,
   AuthState Function()? readAuthState,
-  WidgetBuilder? loginBuilder,
-  WidgetBuilder? registerBuilder,
-  WidgetBuilder? forgotPasswordBuilder,
-  Widget Function(BuildContext context, String? initialEmail)?
-  resetPasswordBuilder,
   WidgetBuilder? configBuilder,
 }) {
   return GoRouter(
@@ -85,46 +84,26 @@ GoRouter createAppRouter({
       GoRoute(
         path: AppRoutes.login,
         builder: (BuildContext context, GoRouterState state) {
-          if (loginBuilder != null) {
-            return loginBuilder(context);
-          }
-          return const Scaffold(
-            body: Center(child: Text('Login')),
-          );
+          return const LoginScreen();
         },
       ),
       GoRoute(
         path: AppRoutes.register,
         builder: (BuildContext context, GoRouterState state) {
-          if (registerBuilder != null) {
-            return registerBuilder(context);
-          }
-          return const Scaffold(
-            body: Center(child: Text('Criar Conta')),
-          );
+          return const RegisterScreen();
         },
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (BuildContext context, GoRouterState state) {
-          if (forgotPasswordBuilder != null) {
-            return forgotPasswordBuilder(context);
-          }
-          return const Scaffold(
-            body: Center(child: Text('Recuperar Senha')),
-          );
+          return const ForgotPasswordScreen();
         },
       ),
       GoRoute(
         path: AppRoutes.resetPassword,
         builder: (BuildContext context, GoRouterState state) {
           final String? email = state.uri.queryParameters['email'];
-          if (resetPasswordBuilder != null) {
-            return resetPasswordBuilder(context, email);
-          }
-          return const Scaffold(
-            body: Center(child: Text('Redefinir Senha')),
-          );
+          return ResetPasswordScreen(initialEmail: email);
         },
       ),
       StatefulShellRoute.indexedStack(
