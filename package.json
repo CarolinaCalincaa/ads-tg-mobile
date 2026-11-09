@@ -1,0 +1,7 @@
+{
+  "name": "ads-tg-mobile-web",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "flutter build web --release --dart-define=API_BASE_URL=https://ads-tg-api.onrender.com/api/v1"
+  }
+}
