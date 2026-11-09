@@ -41,6 +41,9 @@ abstract interface class PainelRemoteDataSource {
     required String idChecklist,
     required String descricao,
   });
+  Future<Map<String, dynamic>> registrarSessaoPomodoro(
+    Map<String, dynamic> payload,
+  );
 }
 
 class DioPainelRemoteDataSource implements PainelRemoteDataSource {
@@ -81,6 +84,11 @@ class DioPainelRemoteDataSource implements PainelRemoteDataSource {
     final dynamic data = response.data;
     if (data is Map<String, dynamic> && data['sugeridos'] is List) {
       return (data['sugeridos'] as List<dynamic>)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    if (data is List) {
+      return data
           .map((e) => Map<String, dynamic>.from(e as Map))
           .toList();
     }
@@ -208,6 +216,17 @@ class DioPainelRemoteDataSource implements PainelRemoteDataSource {
       data: <String, dynamic>{'descricao': descricao},
     );
     return ItemChecklistEntity.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<Map<String, dynamic>> registrarSessaoPomodoro(
+    Map<String, dynamic> payload,
+  ) async {
+    final Response<dynamic> response = await dio.post<dynamic>(
+      '/pomodoro/sessoes',
+      data: payload,
+    );
+    return response.data as Map<String, dynamic>;
   }
 }
 

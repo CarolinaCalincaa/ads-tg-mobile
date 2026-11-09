@@ -217,6 +217,21 @@ class PainelRepositoryImpl implements PainelRepository {
       );
     }
   }
+
+  @override
+  Future<Result<Map<String, dynamic>>> registrarSessaoPomodoro(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final Map<String, dynamic> res =
+          await remoteDataSource.registrarSessaoPomodoro(payload);
+      return Success<Map<String, dynamic>>(res);
+    } catch (e) {
+      return FailureResult<Map<String, dynamic>>(
+        ApiExceptionMapper.map(e),
+      );
+    }
+  }
 }
 
 final Provider<PainelRepository> painelRepositoryProvider =

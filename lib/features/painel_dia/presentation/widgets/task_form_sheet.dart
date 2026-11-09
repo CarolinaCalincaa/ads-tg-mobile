@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:produtividade_tcc/core/error/app_failure.dart';
 import 'package:produtividade_tcc/core/theme/app_colors.dart';
 import 'package:produtividade_tcc/core/theme/app_spacing.dart';
 import 'package:produtividade_tcc/core/theme/app_typography.dart';
@@ -12,15 +13,20 @@ import 'package:produtividade_tcc/features/painel_dia/domain/entities/projeto_en
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/painel_dia_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/selected_date_provider.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/fatigue_blocked_sheet.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/project_form_dialog.dart';
 
 class TaskFormSheet extends ConsumerStatefulWidget {
   const TaskFormSheet({
     super.key,
     this.initialItem,
+    this.initialDate,
+    this.initialIndicadorDependencia,
   });
 
   final TimelineItemEntity? initialItem;
+  final String? initialDate;
+  final String? initialIndicadorDependencia;
 
   @override
   ConsumerState<TaskFormSheet> createState() => _TaskFormSheetState();
@@ -69,8 +75,11 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     _idPilar = item?.pilar.idPilar ?? 7;
     _duracaoMinutos = item?.duracaoEstimadaMinutos ?? 30;
     _prioridade = item?.prioridade ?? TaskPriority.prioridade;
-    _indicadorDependencia = item?.indicadorDependencia ?? 'MINHAS_ACOES';
-    _dataAgendamento = ref.read(selectedDateStringProvider);
+    _indicadorDependencia = widget.initialIndicadorDependencia ??
+        item?.indicadorDependencia ??
+        'MINHAS_ACOES';
+    _dataAgendamento =
+        widget.initialDate ?? ref.read(selectedDateStringProvider);
     _horarioInicio = item?.horario;
     _idProjeto = item?.projeto?.id;
 
@@ -146,14 +155,44 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
     if (ok) {
       Navigator.of(context).pop();
     } else {
-      final msg = ref.read(painelDiaNotifierProvider).failure?.message ??
-          'Erro ao salvar tarefa.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(msg),
-          backgroundColor: AppColors.fatigueCritical,
-        ),
-      );
+      final failure = ref.read(painelDiaNotifierProvider).failure;
+      if (failure is MentalFatigueBlockedFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(failure.message),
+            backgroundColor: AppColors.fatigueCritical,
+          ),
+        );
+        showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: AppColors.surfaceCard,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (ctx) => FatigueBlockedSheet(
+            dataAtual: _dataAgendamento,
+            onAgendarEmDataLivre: (dataLivre) {
+              setState(() {
+                _dataAgendamento = dataLivre;
+              });
+            },
+            onRegistrarEmEspera: () {
+              setState(() {
+                _indicadorDependencia = 'EM_ESPERA';
+              });
+            },
+          ),
+        );
+      } else {
+        final msg = failure?.message ?? 'Erro ao salvar tarefa.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.fatigueCritical,
+          ),
+        );
+      }
     }
   }
 
@@ -190,6 +229,13 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
               Text(
                 widget.initialItem != null ? 'Editar Atividade' : 'Nova Atividade',
                 style: AppTypography.displayLarge.copyWith(fontSize: 20),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Data agendada: $_dataAgendamento',
+                style: AppTypography.chipLabel.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: AppSpacing.md),
 

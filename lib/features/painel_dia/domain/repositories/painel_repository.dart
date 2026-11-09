@@ -39,4 +39,8 @@ abstract interface class PainelRepository {
     required String idChecklist,
     required String descricao,
   });
+
+  Future<Result<Map<String, dynamic>>> registrarSessaoPomodoro(
+    Map<String, dynamic> payload,
+  );
 }

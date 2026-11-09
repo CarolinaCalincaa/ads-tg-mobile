@@ -75,26 +75,40 @@ class PainelDiaState extends Equatable {
 
 class PainelDiaNotifier extends Notifier<PainelDiaState> {
   PainelRepository get _repository => ref.read(painelRepositoryProvider);
+  bool _disposed = false;
 
   @override
   PainelDiaState build() {
+    _disposed = false;
+    ref.onDispose(() {
+      _disposed = true;
+    });
+
     final String dateStr = ref.watch(selectedDateStringProvider);
-    Future<void>.microtask(() => loadDia(dateStr));
+    Future<void>.microtask(() {
+      if (!_disposed) {
+        loadDia(dateStr);
+      }
+    });
     return const PainelDiaState.initial();
   }
 
   Future<void> loadDia(String dateStr) async {
+    if (_disposed) return;
     state = state.copyWith(status: PainelStatus.loading, clearFailure: true);
     final Result<PainelDiaBundle> result = await _repository.getPainelDia(dateStr);
 
+    if (_disposed) return;
     result.fold(
       onFailure: (AppFailure failure) {
+        if (_disposed) return;
         state = state.copyWith(
           status: PainelStatus.error,
           failure: failure,
         );
       },
       onSuccess: (PainelDiaBundle bundle) {
+        if (_disposed) return;
         state = state.copyWith(
           status: PainelStatus.success,
           bundle: bundle,
@@ -344,6 +358,36 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
 
   void clearFailure() {
     state = state.copyWith(clearFailure: true);
+  }
+
+  void incrementPomodoroCount(String idTarefa) {
+    final currentBundle = state.bundle;
+    if (currentBundle == null) return;
+
+    final updatedLinhaTempo = currentBundle.itensLinhaTempo.map((item) {
+      if (item.id == idTarefa) {
+        return item.copyWith(
+          pomodorosConcluidos: item.pomodorosConcluidos + 1,
+        );
+      }
+      return item;
+    }).toList();
+
+    final updatedEmEspera = currentBundle.itensEmEspera.map((item) {
+      if (item.id == idTarefa) {
+        return item.copyWith(
+          pomodorosConcluidos: item.pomodorosConcluidos + 1,
+        );
+      }
+      return item;
+    }).toList();
+
+    state = state.copyWith(
+      bundle: currentBundle.copyWith(
+        itensLinhaTempo: updatedLinhaTempo,
+        itensEmEspera: updatedEmEspera,
+      ),
+    );
   }
 }
 
