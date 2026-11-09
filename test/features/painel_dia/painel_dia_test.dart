@@ -366,6 +366,13 @@ void main() {
 
   group('PainelDiaScreen Widget Tests (E03-T04 / E03-T06)', () {
     testWidgets('renders timeline item card and opens task sheet on FAB tap', (tester) async {
+      tester.view.physicalSize = const Size(800, 1000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final fakeRepo = _FakePainelRepository();
 
       await tester.pumpWidget(
@@ -403,6 +410,7 @@ void main() {
       expect(find.text('☑️ 1/2'), findsOneWidget);
 
       // Toca no chip de checklist para expandir acordeão inline (RF20)
+      await tester.ensureVisible(find.text('☑️ 1/2'));
       await tester.tap(find.text('☑️ 1/2'));
       await tester.pumpAndSettle();
       expect(find.text('Subitem 1'), findsOneWidget);

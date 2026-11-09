@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:produtividade_tcc/core/router/app_router.dart';
 import 'package:produtividade_tcc/core/theme/app_colors.dart';
 import 'package:produtividade_tcc/core/theme/app_spacing.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
+import 'package:produtividade_tcc/features/fechamento/presentation/widgets/pending_closing_callout.dart';
 import 'package:produtividade_tcc/features/habitos/presentation/widgets/habit_form_sheet.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/painel_dia_bundle.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
@@ -113,6 +116,7 @@ class PainelDiaScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final PainelDiaState state = ref.watch(painelDiaNotifierProvider);
+    final DateTime selectedDate = ref.watch(selectedDateProvider);
     final String dataAtual = ref.watch(selectedDateStringProvider);
     final PainelDiaBundle bundle = state.bundle ?? PainelDiaBundle.vazio(dataAtual);
 
@@ -189,6 +193,18 @@ class PainelDiaScreen extends ConsumerWidget {
                         pilaresAtivos: bundle.pilaresAtivosMes,
                       ),
                     ),
+
+                    // 2.2 Banner Contextual de Fechamento Reflexivo (E06-T04 — Domingos ou fim de mês)
+                    if (PendingClosingCallout.shouldShowForDate(selectedDate))
+                      SliverToBoxAdapter(
+                        child: PendingClosingCallout(
+                          onTap: () {
+                            context.push(
+                              '${AppRoutes.fechamento}?tipoCiclo=${selectedDate.weekday == DateTime.sunday ? 'SEMANAL' : 'MENSAL'}&dataRef=$dataAtual',
+                            );
+                          },
+                        ),
+                      ),
 
                     // 3. Capacidade Diária / Banner Alerta de Fadiga Mental (RN02 / RF16 / RF17)
                     if (state.visaoModo == VisaoModo.dia)

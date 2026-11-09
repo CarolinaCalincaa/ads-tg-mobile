@@ -71,8 +71,11 @@ class LembretesNotifier extends Notifier<LembretesState> {
   @override
   LembretesState build() {
     _disposed = false;
+    final LocalNotificationService notifService =
+        ref.read(localNotificationServiceProvider);
     ref.onDispose(() {
       _disposed = true;
+      notifService.cancelAll();
     });
 
     Future<void>.microtask(() {
@@ -101,10 +104,13 @@ class LembretesNotifier extends Notifier<LembretesState> {
       },
       onSuccess: (data) {
         if (!_disposed) {
+          final List<LembreteConfigEntity> configs =
+              data.isNotEmpty ? data : LembreteConfigEntity.padroes;
           state = state.copyWith(
             status: LembretesStatus.success,
-            configs: data.isNotEmpty ? data : LembreteConfigEntity.padroes,
+            configs: configs,
           );
+          _sincronizarAgendamentos(configs);
         }
       },
     );
@@ -134,6 +140,22 @@ class LembretesNotifier extends Notifier<LembretesState> {
     salvarTudo();
   }
 
+  void _sincronizarAgendamentos(List<LembreteConfigEntity> configs) {
+    for (final LembreteConfigEntity config in configs) {
+      final int id = config.tipo.index + 1;
+      if (config.ativo && config.intervaloMinutos != null && config.intervaloMinutos! > 0) {
+        _notificationService.schedulePeriodic(
+          id: id,
+          title: config.titulo,
+          body: config.descricao,
+          intervalMinutes: config.intervaloMinutos!,
+        );
+      } else {
+        _notificationService.cancel(id);
+      }
+    }
+  }
+
   Future<void> testarLembrete(TipoLembrete tipo) async {
     final LembreteConfigEntity config = state.getByType(tipo);
     await _notificationService.showTestNotification(
@@ -161,6 +183,7 @@ class LembretesNotifier extends Notifier<LembretesState> {
           isSaving: false,
           configs: saved,
         );
+        _sincronizarAgendamentos(saved);
         return true;
       },
     );

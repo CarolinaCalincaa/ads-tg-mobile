@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,9 @@ class LocalNotificationService {
 
   /// Registrador de testes para inspecionar notificações disparadas sem depender de canal de plataforma.
   final List<Map<String, dynamic>> testNotificationLog = <Map<String, dynamic>>[];
+
+  /// Mapa de timers periódicos ativos por id (para Web e foreground em mobile).
+  final Map<int, Timer> _activePeriodicTimers = <int, Timer>{};
 
   bool get isInitialized => _initialized;
 
@@ -133,8 +137,71 @@ class LocalNotificationService {
     }
   }
 
+  /// Agenda um lembrete periódico com intervalo em minutos (Web e Mobile).
+  Future<void> schedulePeriodic({
+    required int id,
+    required String title,
+    required String body,
+    required int intervalMinutes,
+  }) async {
+    // Cancela timer ou notificação anterior com este ID
+    await cancel(id);
+
+    final Duration duration = Duration(minutes: intervalMinutes);
+
+    // Inicia Timer periódico ativo no app para Web e foreground mobile
+    _activePeriodicTimers[id] = Timer.periodic(duration, (_) {
+      showTestNotification(id: id, title: title, body: body);
+    });
+
+    // Se estiver no mobile com plugin nativo inicializado, agenda repetição se suportado
+    if (!kIsWeb && _initialized) {
+      try {
+        const AndroidNotificationDetails androidDetails =
+            AndroidNotificationDetails(
+          'lembretes_cognitivos',
+          'Lembretes de Saúde Cognitiva',
+          channelDescription:
+              'Alertas periódicos de hidratação, pausa ativa, sono e fechamento reflexivo',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
+
+        const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        );
+
+        const NotificationDetails details = NotificationDetails(
+          android: androidDetails,
+          iOS: iosDetails,
+        );
+
+        // Agendamento periódico nativo (ex: RepeatInterval.hourly se >= 60)
+        final RepeatInterval repeatInterval = intervalMinutes >= 60
+            ? RepeatInterval.hourly
+            : RepeatInterval.everyMinute;
+
+        await _plugin.periodicallyShow(
+          id: id,
+          title: title,
+          body: body,
+          repeatInterval: repeatInterval,
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      } catch (e) {
+        debugPrint('[LocalNotificationService] Fallback nativo: $e');
+      }
+    }
+  }
+
   /// Cancela um lembrete específico por ID.
   Future<void> cancel(int id) async {
+    _activePeriodicTimers[id]?.cancel();
+    _activePeriodicTimers.remove(id);
+
     if (kIsWeb || !_initialized) return;
     try {
       await _plugin.cancel(id: id);
@@ -145,6 +212,11 @@ class LocalNotificationService {
 
   /// Cancela todos os lembretes agendados.
   Future<void> cancelAll() async {
+    for (final Timer timer in _activePeriodicTimers.values) {
+      timer.cancel();
+    }
+    _activePeriodicTimers.clear();
+
     if (kIsWeb || !_initialized) return;
     try {
       await _plugin.cancelAll();

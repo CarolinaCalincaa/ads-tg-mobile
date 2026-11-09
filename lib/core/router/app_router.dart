@@ -10,6 +10,8 @@ import 'package:produtividade_tcc/features/auth/presentation/screens/forgot_pass
 import 'package:produtividade_tcc/features/auth/presentation/screens/login_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/register_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:produtividade_tcc/features/fechamento/presentation/screens/fechamento_history_screen.dart';
+import 'package:produtividade_tcc/features/fechamento/presentation/screens/fechamento_screen.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/screens/painel_dia_screen.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/screens/process_templates_screen.dart';
 import 'package:produtividade_tcc/features/pilares/presentation/screens/monthly_pillars_screen.dart';
@@ -27,6 +29,8 @@ abstract final class AppRoutes {
   static const String config = '/config';
   static const String modelosProcessos = '/modelos-processos';
   static const String pilaresMensais = '/pilares-mensais';
+  static const String fechamento = '/fechamento';
+  static const String fechamentoHistorico = '/fechamento/historico';
 
   static const Set<String> publicAuthRoutes = <String>{
     login,
@@ -101,6 +105,23 @@ GoRouter createAppRouter({
         },
       ),
       GoRoute(
+        path: AppRoutes.fechamento,
+        builder: (BuildContext context, GoRouterState state) {
+          final String? tipo = state.uri.queryParameters['tipoCiclo'];
+          final String? dataRef = state.uri.queryParameters['dataRef'];
+          return FechamentoScreen(
+            initialTipoCiclo: tipo ?? 'SEMANAL',
+            initialDataRef: dataRef,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.fechamentoHistorico,
+        builder: (BuildContext context, GoRouterState state) {
+          return const FechamentoHistoryScreen();
+        },
+      ),
+      GoRoute(
         path: AppRoutes.login,
         builder: (BuildContext context, GoRouterState state) {
           return const LoginScreen();
@@ -151,12 +172,43 @@ GoRouter createAppRouter({
                 path: AppRoutes.relatorios,
                 builder: (BuildContext context, GoRouterState state) {
                   return Scaffold(
-                    appBar: AppBar(title: const Text('Relatórios & Evolução')),
-                    body: const EmptyStateView(
-                      icon: Icons.insights_outlined,
-                      title: 'Evolução & Fechamento Reflexivo',
-                      description:
-                          'Seus gráficos de consistência, engajamento nos 3 pilares e ritos de reflexão aparecerão aqui.',
+                    appBar: AppBar(
+                      title: const Text('Relatórios & Evolução'),
+                      actions: <Widget>[
+                        IconButton(
+                          key: const Key('btn_historico_fechamentos_relatorios'),
+                          tooltip: 'Histórico de Fechamentos',
+                          icon: const Icon(Icons.history_outlined),
+                          onPressed: () {
+                            context.push(AppRoutes.fechamentoHistorico);
+                          },
+                        ),
+                      ],
+                    ),
+                    body: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            const EmptyStateView(
+                              icon: Icons.insights_outlined,
+                              title: 'Evolução & Fechamento Reflexivo',
+                              description:
+                                  'Seus gráficos de consistência, engajamento nos 3 pilares e ritos de reflexão aparecerão aqui.',
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              key: const Key('btn_abrir_fechamento_relatorios'),
+                              icon: const Icon(Icons.auto_stories_outlined),
+                              label: const Text('Realizar Fechamento Reflexivo'),
+                              onPressed: () {
+                                context.push(AppRoutes.fechamento);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 },
