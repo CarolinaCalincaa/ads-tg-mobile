@@ -145,7 +145,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Digite o código de 6 dígitos enviado para seu e-mail e escolha uma nova senha forte (RF02, RF04).',
+                        'Digite o código de 6 dígitos enviado para seu e-mail e escolha uma nova senha forte.',
                         style: AppTypography.bodyMedium,
                       ),
                       const SizedBox(height: AppSpacing.md),

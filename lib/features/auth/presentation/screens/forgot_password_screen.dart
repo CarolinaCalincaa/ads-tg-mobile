@@ -118,7 +118,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Informe seu e-mail e enviaremos um código numérico de 6 dígitos com validade de 15 minutos (RF04).',
+                        'Informe seu e-mail e enviaremos um código numérico de 6 dígitos com validade de 15 minutos.',
                         style: AppTypography.bodyMedium,
                       ),
                       const SizedBox(height: AppSpacing.md),

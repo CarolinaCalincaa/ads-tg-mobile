@@ -84,7 +84,7 @@ class _SleepHoursSelectorCardState extends State<SleepHoursSelectorCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'Horas Diárias de Sono (RF05 / RN02)',
+                      'Horas Diárias de Sono',
                       style: AppTypography.cardTitle,
                     ),
                     Text(

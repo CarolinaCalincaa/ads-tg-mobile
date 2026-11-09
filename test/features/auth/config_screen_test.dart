@@ -92,7 +92,7 @@ void main() {
 
   group('ConfigScreen, SleepHoursSelectorCard & DeleteAccountDialog (E02-T05)', () {
     testWidgets(
-      'SleepHoursSelectorCard displays real-time RN02 capacity formula and saves updated sleep hours (RF05)',
+      'SleepHoursSelectorCard displays real-time RN02 capacity formula and saves updated sleep hours',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;

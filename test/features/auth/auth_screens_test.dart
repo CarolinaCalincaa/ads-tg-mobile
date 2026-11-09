@@ -187,7 +187,7 @@ void main() {
     );
 
     testWidgets(
-      'RegisterScreen updates PasswordStrengthChecklist in real-time and blocks weak passwords (RF02)',
+      'RegisterScreen updates PasswordStrengthChecklist in real-time and blocks weak passwords',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(800, 1400);
         tester.view.devicePixelRatio = 1.0;
@@ -247,7 +247,7 @@ void main() {
 
         expect(
           find.text(
-            'A senha deve atender a todos os 5 critérios de segurança (RF02).',
+            'A senha deve atender a todos os 5 critérios de segurança.',
           ),
           findsOneWidget,
         );

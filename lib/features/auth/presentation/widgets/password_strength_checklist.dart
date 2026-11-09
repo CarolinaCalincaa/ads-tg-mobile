@@ -55,7 +55,7 @@ abstract final class PasswordStrengthValidator {
       return 'Informe uma senha.';
     }
     if (!isStrong(password)) {
-      return 'A senha deve atender a todos os 5 critérios de segurança (RF02).';
+      return 'A senha deve atender a todos os 5 critérios de segurança.';
     }
     return null;
   }
@@ -96,7 +96,7 @@ class PasswordStrengthChecklist extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  'Segurança da senha (RF02)',
+                  'Segurança da senha',
                   style: AppTypography.chipLabel.copyWith(
                     color: AppColors.textPrimary,
                   ),

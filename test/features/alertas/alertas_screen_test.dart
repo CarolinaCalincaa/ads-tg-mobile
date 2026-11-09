@@ -36,7 +36,7 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  group('AlertasScreen & LocalNotificationService (RF21 — E05-T05)', () {
+  group('AlertasScreen & LocalNotificationService', () {
     testWidgets(
       'renderiza os 4 cards de lembretes cognitivos e dispara alerta de teste',
       (WidgetTester tester) async {
