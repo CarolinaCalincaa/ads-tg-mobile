@@ -1,28 +1,14 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Deploy Flutter Web to Vercel
 
 on:
   push:
     branches:
-      - develop
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
-
 jobs:
-  build-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  deploy-to-vercel:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -39,21 +25,23 @@ jobs:
       - name: Build Flutter Web
         run: |
           flutter build web --release \
-            --base-href "/ads-tg-mobile/" \
             --dart-define=API_BASE_URL=https://ads-tg-api.onrender.com/api/v1 \
             --dart-define=OAUTH_DEV_MOCK_ENABLED=true
 
-      - name: Fix SPA 404 Routing for GitHub Pages
-        run: cp build/web/index.html build/web/404.html
+      - name: Copy vercel.json to build output
+        run: cp vercel.json build/web/vercel.json
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
 
-      - name: Upload Artifacts
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'build/web'
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
