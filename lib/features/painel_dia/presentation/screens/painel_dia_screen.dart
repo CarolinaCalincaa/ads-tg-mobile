@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:produtividade_tcc/core/theme/app_colors.dart';
 import 'package:produtividade_tcc/core/theme/app_spacing.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
+import 'package:produtividade_tcc/features/habitos/presentation/widgets/habit_form_sheet.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/painel_dia_bundle.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/painel_dia_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/selected_date_provider.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pillars_filter_row.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pomodoro_mini_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/compact_capacity_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/date_navigator_bar.dart';
@@ -35,7 +37,7 @@ class PainelDiaScreen extends ConsumerWidget {
     );
   }
 
-  void _abrirFormEditarTarefa(BuildContext context, TimelineItemEntity item) {
+  void _abrirFormEditarAtividade(BuildContext context, TimelineItemEntity item) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -43,7 +45,9 @@ class PainelDiaScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => TaskFormSheet(initialItem: item),
+      builder: (context) => item.ehHabito
+          ? HabitFormSheet(initialItem: item)
+          : TaskFormSheet(initialItem: item),
     );
   }
 
@@ -126,10 +130,17 @@ class PainelDiaScreen extends ConsumerWidget {
       }
     });
 
-    final List<TimelineItemEntity> itensExibidos =
+    final List<TimelineItemEntity> baseItens =
         state.abaDependencia == AbaDependencia.minhasAcoes
             ? bundle.itensLinhaTempo
             : bundle.itensEmEspera;
+
+    final List<TimelineItemEntity> itensExibidos =
+        state.selectedPilarFilter != null
+            ? baseItens
+                .where((i) => i.pilar.idPilar == state.selectedPilarFilter)
+                .toList()
+            : baseItens;
 
     return Scaffold(
       floatingActionButton: SmartScheduleFab(
@@ -169,6 +180,13 @@ class PainelDiaScreen extends ConsumerWidget {
                           DayWeekSegmentedToggle(),
                           SizedBox(height: AppSpacing.sm),
                         ],
+                      ),
+                    ),
+
+                    // 2.1 Pilares Ativos Focais do Mês (RF12 / RN01 — Mockup 01)
+                    SliverToBoxAdapter(
+                      child: ActivePillarsFilterRow(
+                        pilaresAtivos: bundle.pilaresAtivosMes,
                       ),
                     ),
 
@@ -272,13 +290,19 @@ class PainelDiaScreen extends ConsumerWidget {
                           final item = itensExibidos[index];
                           return TimelineSlotRow(
                             item: item,
-                            onEdit: () => _abrirFormEditarTarefa(context, item),
+                            onEdit: () => _abrirFormEditarAtividade(context, item),
                             onReschedule: () =>
                                 _abrirRemanejamento(context, item),
                             onDelete: () {
-                              ref
-                                  .read(painelDiaNotifierProvider.notifier)
-                                  .deleteTask(item.id);
+                              if (item.ehHabito) {
+                                ref
+                                    .read(painelDiaNotifierProvider.notifier)
+                                    .deleteHabit(item.id);
+                              } else {
+                                ref
+                                    .read(painelDiaNotifierProvider.notifier)
+                                    .deleteTask(item.id);
+                              }
                             },
                           );
                         },

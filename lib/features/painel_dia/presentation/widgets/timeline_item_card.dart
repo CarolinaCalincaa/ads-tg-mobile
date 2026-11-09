@@ -51,16 +51,17 @@ class TimelineItemCard extends ConsumerWidget {
               const SizedBox(width: AppSpacing.xs),
               PriorityBadge(priority: item.prioridade),
               const Spacer(),
-              if (item.ehHabito)
+              if (item.ehHabito) ...<Widget>[
                 Container(
+                  key: Key('badge_habito_${item.id}'),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xs,
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceSubtle,
+                    color: const Color(0xFFE0F2FE), // Azul suave Mockup 01
                     borderRadius: AppSpacing.chipRadius,
-                    border: Border.all(color: AppColors.borderSubtle),
+                    border: Border.all(color: const Color(0xFFBAE6FD)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -68,18 +69,49 @@ class TimelineItemCard extends ConsumerWidget {
                       const Icon(
                         Icons.repeat_rounded,
                         size: 12,
-                        color: AppColors.textSecondary,
+                        color: Color(0xFF0369A1),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Hábito',
                         style: AppTypography.chipLabel.copyWith(
-                          color: AppColors.textSecondary,
+                          color: const Color(0xFF0369A1),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                 ),
+                if (item.streakAtual != null) ...<Widget>[
+                  const SizedBox(width: AppSpacing.xs),
+                  Container(
+                    key: Key('badge_streak_${item.id}'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7ED), // Laranja suave fogo
+                      borderRadius: AppSpacing.chipRadius,
+                      border: Border.all(color: const Color(0xFFFFEDD5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const Text('🔥', style: TextStyle(fontSize: 12)),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${item.streakAtual}d',
+                          style: AppTypography.chipLabel.copyWith(
+                            color: const Color(0xFFC2410C),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
               if (!item.ehHabito && !item.concluido) ...<Widget>[
                 IconButton(
                   key: Key('iniciar_pomodoro_${item.id}'),
@@ -107,31 +139,31 @@ class TimelineItemCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppSpacing.xs),
               ],
-              if (!item.ehHabito)
-                PopupMenuButton<String>(
-                  icon: const Icon(
-                    Icons.more_vert_rounded,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onSelected: (value) {
-                    if (value == 'edit') onEdit?.call();
-                    if (value == 'reschedule') onReschedule?.call();
-                    if (value == 'delete') onDelete?.call();
-                  },
-                  itemBuilder: (context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Row(
-                        children: <Widget>[
-                          Icon(Icons.edit_outlined, size: 18),
-                          SizedBox(width: AppSpacing.xs),
-                          Text('Editar'),
-                        ],
-                      ),
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onSelected: (value) {
+                  if (value == 'edit') onEdit?.call();
+                  if (value == 'reschedule') onReschedule?.call();
+                  if (value == 'delete') onDelete?.call();
+                },
+                itemBuilder: (context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.edit_outlined, size: 18),
+                        SizedBox(width: AppSpacing.xs),
+                        Text('Editar'),
+                      ],
                     ),
+                  ),
+                  if (!item.ehHabito)
                     const PopupMenuItem<String>(
                       value: 'reschedule',
                       child: Row(
@@ -142,20 +174,20 @@ class TimelineItemCard extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: <Widget>[
-                          Icon(Icons.delete_outline_rounded,
-                              size: 18, color: AppColors.fatigueCritical),
-                          SizedBox(width: AppSpacing.xs),
-                          Text('Excluir',
-                              style: TextStyle(color: AppColors.fatigueCritical)),
-                        ],
-                      ),
+                  const PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.delete_outline_rounded,
+                            size: 18, color: AppColors.fatigueCritical),
+                        SizedBox(width: AppSpacing.xs),
+                        Text('Excluir',
+                            style: TextStyle(color: AppColors.fatigueCritical)),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),

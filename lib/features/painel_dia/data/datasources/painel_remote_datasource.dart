@@ -22,6 +22,18 @@ abstract interface class PainelRemoteDataSource {
   Future<void> deleteTask(String id);
   Future<void> toggleTaskStatus(String id, bool concluido);
 
+  Future<Map<String, dynamic>> toggleHabitExecution(
+    String id,
+    String data,
+    bool concluido,
+  );
+  Future<Map<String, dynamic>> createHabit(Map<String, dynamic> payload);
+  Future<Map<String, dynamic>> updateHabit(
+    String id,
+    Map<String, dynamic> payload,
+  );
+  Future<void> deleteHabit(String id);
+
   Future<List<ProjetoEntity>> getProjetos({String? status});
   Future<ProjetoEntity> createProjeto(Map<String, dynamic> payload);
 
@@ -129,6 +141,48 @@ class DioPainelRemoteDataSource implements PainelRemoteDataSource {
         'status': concluido ? 'CONCLUIDA' : 'PENDENTE',
       },
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> toggleHabitExecution(
+    String id,
+    String data,
+    bool concluido,
+  ) async {
+    final Response<dynamic> response = await dio.put<dynamic>(
+      '/habitos/$id/execucoes/$data',
+      data: <String, dynamic>{'concluido': concluido},
+    );
+    if (response.data is Map<String, dynamic>) {
+      return response.data as Map<String, dynamic>;
+    }
+    return <String, dynamic>{'concluido': concluido};
+  }
+
+  @override
+  Future<Map<String, dynamic>> createHabit(Map<String, dynamic> payload) async {
+    final Response<dynamic> response = await dio.post<dynamic>(
+      '/habitos',
+      data: payload,
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateHabit(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
+    final Response<dynamic> response = await dio.patch<dynamic>(
+      '/habitos/$id',
+      data: payload,
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<void> deleteHabit(String id) async {
+    await dio.delete<dynamic>('/habitos/$id');
   }
 
   @override

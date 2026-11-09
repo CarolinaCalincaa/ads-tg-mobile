@@ -7,6 +7,7 @@ import 'package:produtividade_tcc/core/theme/app_spacing.dart';
 import 'package:produtividade_tcc/core/theme/app_typography.dart';
 import 'package:produtividade_tcc/features/auth/domain/entities/usuario_entity.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
+import 'package:produtividade_tcc/features/habitos/presentation/widgets/habit_form_sheet.dart';
 
 class PainelHeader extends ConsumerWidget {
   const PainelHeader({super.key});
@@ -25,44 +26,78 @@ class PainelHeader extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                'Olá, $primeiroNome 👋',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Olá, $primeiroNome 👋',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
+                const SizedBox(height: 2),
+                Text(
+                  'Painel do Dia',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.displayLarge.copyWith(fontSize: 22),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              IconButton(
+                key: const Key('novo_habito_button'),
+                icon: const Icon(
+                  Icons.repeat_rounded,
+                  color: AppColors.primaryBrand,
+                  size: 24,
+                ),
+                tooltip: 'Novo Hábito Recorrente',
+                onPressed: () {
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: AppColors.surfaceCard,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (context) => const HabitFormSheet(),
+                  );
+                },
               ),
-              const SizedBox(height: 2),
-              Text(
-                'Painel do Dia',
-                style: AppTypography.displayLarge.copyWith(fontSize: 22),
+              const SizedBox(width: AppSpacing.xs),
+              InkWell(
+                key: const Key('header_profile_button'),
+                onTap: () {
+                  GoRouter.maybeOf(context)?.go(AppRoutes.config);
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    usuario?.iniciais ?? 'CC',
+                    style: AppTypography.labelLarge.copyWith(
+                      color: AppColors.surfaceCard,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ),
             ],
-          ),
-          InkWell(
-            key: const Key('header_profile_button'),
-            onTap: () {
-              GoRouter.maybeOf(context)?.go(AppRoutes.config);
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                usuario?.iniciais ?? 'CC',
-                style: AppTypography.labelLarge.copyWith(
-                  color: AppColors.surfaceCard,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
           ),
         ],
       ),
