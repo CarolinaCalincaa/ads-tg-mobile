@@ -19,7 +19,7 @@ class AlertasScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Alertas Saudáveis (RF21)'),
+        title: const Text('Alertas Saudáveis'),
         elevation: 0,
       ),
       body: SafeArea(

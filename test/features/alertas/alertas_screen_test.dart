@@ -68,7 +68,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // 1. Verifica título da tela e cabeçalho explicativo
-        expect(find.text('Alertas Saudáveis (RF21)'), findsOneWidget);
+        expect(find.text('Alertas Saudáveis'), findsOneWidget);
         expect(find.text('Lembretes de Saúde Cognitiva'), findsOneWidget);
 
         // 2. Verifica a presença das 4 categorias canônicas

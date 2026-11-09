@@ -86,7 +86,7 @@ class _ProcessTemplatesScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Modelos de Processos (RF19)'),
+        title: const Text('Modelos de Processos'),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createNewTemplate,

@@ -78,7 +78,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // 1. Verifica renderização inicial e contador 2/3
-        expect(find.text('Pilares do Mês (RN01)'), findsOneWidget);
+        expect(find.text('Pilares do Mês'), findsOneWidget);
         expect(find.text('Pilares ativos no mês: 2/3'), findsOneWidget);
 
         // Verifica presença de pilares do TCC

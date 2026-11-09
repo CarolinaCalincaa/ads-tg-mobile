@@ -383,7 +383,7 @@ class _TaskFormSheetState extends ConsumerState<TaskFormSheet> {
               const SizedBox(height: AppSpacing.md),
 
               // Dependência: Minhas Ações vs Em Espera
-              Text('Dependência (RN02)', style: AppTypography.cardTitle),
+              Text('Dependência', style: AppTypography.cardTitle),
               const SizedBox(height: AppSpacing.xs),
               SegmentedButton<String>(
                 segments: const <ButtonSegment<String>>[

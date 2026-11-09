@@ -13,7 +13,7 @@ import 'package:produtividade_tcc/features/auth/presentation/providers/auth_noti
 import 'package:produtividade_tcc/features/auth/presentation/widgets/delete_account_dialog.dart';
 import 'package:produtividade_tcc/features/auth/presentation/widgets/sleep_hours_selector_card.dart';
 
-/// Tela da 4ª Aba (`Config.` — `/config`): Perfil, Horas de Sono (`RF05` / `RN02`) e Exclusão Definitiva LGPD (`RNF07`) (`E02-T05`).
+/// Tela da 4ª Aba (`Config.` — `/config`): Perfil, Horas de Sono e Opções da Conta.
 class ConfigScreen extends ConsumerStatefulWidget {
   const ConfigScreen({super.key});
 
@@ -301,7 +301,7 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
 
-                  // 2. Seletor de Horas de Sono (RF05 / RN02)
+                  // 2. Seletor de Horas de Sono
                   SleepHoursSelectorCard(
                     initialSleepHours: user.horasSonoDiarias,
                     isSaving: authState.isLoading,
@@ -332,61 +332,89 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
 
-                  // 4. Zona Crítica de Privacidade e LGPD (RNF07)
+                  // 4. Seção Expansível: Mais sobre minha conta (Privacidade e LGPD)
                   AppCard(
-                    backgroundColor: AppColors.fatigueBg,
-                    borderColor: AppColors.fatigueBorder,
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            const Icon(
-                              Icons.shield_outlined,
-                              color: AppColors.fatigueCritical,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Expanded(
-                              child: Text(
-                                'Privacidade e LGPD (RNF07)',
-                                style: AppTypography.cardTitle.copyWith(
-                                  color: AppColors.fatigueCritical,
-                                ),
-                              ),
-                            ),
-                          ],
+                    padding: EdgeInsets.zero,
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                      ),
+                      child: ExpansionTile(
+                        key: const Key('mais_sobre_conta_expansion_tile'),
+                        leading: const Icon(
+                          Icons.shield_outlined,
+                          color: AppColors.textSecondary,
                         ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          'Você possui controle integral sobre seus dados pessoais e de produtividade. Ao excluir sua conta, todos os registros são removidos permanentemente do servidor.',
-                          style: AppTypography.bodyMedium.copyWith(
+                        title: Text(
+                          'Mais sobre minha conta',
+                          style: AppTypography.cardTitle.copyWith(
+                            fontSize: 16,
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        ElevatedButton.icon(
-                          key: const Key('open_delete_account_dialog_button'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.fatigueCritical,
-                            foregroundColor: AppColors.surfaceCard,
-                            minimumSize: const Size(
-                              double.infinity,
-                              AppSpacing.minTapTarget,
-                            ),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: AppSpacing.inputRadius,
-                            ),
-                          ),
-                          onPressed: authState.isLoading
-                              ? null
-                              : _openDeleteAccountDialog,
-                          icon: const Icon(Icons.delete_forever_rounded),
-                          label: const Text(
-                            'Excluir minha conta e todos os dados definitivamente',
+                        subtitle: Text(
+                          'Privacidade, controle de dados e encerramento',
+                          style: AppTypography.bodyMedium.copyWith(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
                           ),
                         ),
-                      ],
+                        childrenPadding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          0,
+                          AppSpacing.md,
+                          AppSpacing.md,
+                        ),
+                        children: <Widget>[
+                          const Divider(color: AppColors.borderSubtle),
+                          const SizedBox(height: AppSpacing.xs),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Privacidade e Proteção de Dados (LGPD)',
+                              style: AppTypography.cardTitle.copyWith(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Você possui controle integral sobre seus dados pessoais e de produtividade. Seus dados nunca são compartilhados com terceiros e podem ser excluídos a qualquer momento.',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          OutlinedButton.icon(
+                            key: const Key('open_delete_account_dialog_button'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.fatigueCritical,
+                              side: const BorderSide(
+                                color: AppColors.fatigueBorder,
+                              ),
+                              minimumSize: const Size(
+                                double.infinity,
+                                AppSpacing.minTapTarget,
+                              ),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: AppSpacing.inputRadius,
+                              ),
+                            ),
+                            onPressed: authState.isLoading
+                                ? null
+                                : _openDeleteAccountDialog,
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              size: 18,
+                            ),
+                            label: const Text(
+                              'Excluir minha conta e dados permanentemente',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

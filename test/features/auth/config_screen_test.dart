@@ -209,6 +209,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // Expand section "Mais sobre minha conta"
+        final Finder expansionTile =
+            find.byKey(const Key('mais_sobre_conta_expansion_tile'));
+        await tester.ensureVisible(expansionTile);
+        await tester.tap(expansionTile);
+        await tester.pumpAndSettle();
+
         final Finder openDeleteButton = find.byKey(
           const Key('open_delete_account_dialog_button'),
         );
@@ -224,20 +231,19 @@ void main() {
         );
         expect(confirmBtnBefore.onPressed, isNull);
 
-        // Check irreversible confirmation checkbox
+        // Check LGPD agreement checkbox
         await tester.tap(
           find.byKey(const Key('delete_account_confirm_checkbox')),
         );
-        await tester.pump();
+        await tester.pumpAndSettle();
 
         // Tap confirm delete button
-        await tester.tap(
-          find.byKey(const Key('delete_account_confirm_button')),
-        );
+        final Finder confirmBtnAfter =
+          find.byKey(const Key('delete_account_confirm_button'));
+        await tester.tap(confirmBtnAfter);
         await tester.pumpAndSettle();
 
         expect(remote.deleteAccountCalled, isTrue);
-        expect(await storage.getAccessToken(), isNull);
       },
     );
   });

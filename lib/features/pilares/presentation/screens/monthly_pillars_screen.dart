@@ -70,7 +70,7 @@ class MonthlyPillarsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pilares do Mês (RN01)'),
+        title: const Text('Pilares do Mês'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
