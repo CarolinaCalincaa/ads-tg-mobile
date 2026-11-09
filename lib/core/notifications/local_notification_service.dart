@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:produtividade_tcc/core/notifications/web_notification_helper.dart';
 
 /// Serviço gerenciador de Notificações Locais (`RF21`, `ADR-008`).
 ///
-/// Encapsula [FlutterLocalNotificationsPlugin] com inicialização segura e tolerante a falhas
-/// em todas as plataformas suportadas (Android, iOS, Web SPA e ambiente de testes).
+/// Encapsula [FlutterLocalNotificationsPlugin] no Android/iOS e a [Web Notifications API]
+/// no navegador, garantindo notificações reais e seguras em todas as plataformas.
 class LocalNotificationService {
   LocalNotificationService({
     FlutterLocalNotificationsPlugin? plugin,
@@ -23,10 +24,14 @@ class LocalNotificationService {
   Future<bool> initialize() async {
     if (_initialized) return true;
 
-    // Em ambiente Web ou testes sem mocks de canais de plataforma nativos
+    // Em ambiente Web: solicita permissão via Web Notifications API
     if (kIsWeb) {
       _initialized = true;
-      debugPrint('[LocalNotificationService] Plataforma Web: inicialização suave em modo no-op.');
+      try {
+        await requestWebNotificationPermission();
+      } catch (e) {
+        debugPrint('[LocalNotificationService] Web permission request: $e');
+      }
       return true;
     }
 
@@ -65,7 +70,7 @@ class LocalNotificationService {
   }
 
   /// Dispara uma notificação imediata de teste para validação pelo usuário (`RF21`).
-  Future<void> showTestNotification({
+  Future<bool> showTestNotification({
     required String title,
     required String body,
     int id = 0,
@@ -79,9 +84,16 @@ class LocalNotificationService {
       'timestamp': DateTime.now().toIso8601String(),
     });
 
-    if (kIsWeb || !_initialized) {
-      debugPrint('[LocalNotificationService - InApp/Test] Alerta registrado: $title - $body');
-      return;
+    // Se estiver no navegador Web: dispara notificação real via Web Notifications API
+    if (kIsWeb) {
+      final bool sent = await showWebNotification(title, body);
+      debugPrint('[LocalNotificationService - Web] Notificação nativa disparada: $sent');
+      return sent;
+    }
+
+    if (!_initialized) {
+      debugPrint('[LocalNotificationService - Test] Alerta registrado no log: $title - $body');
+      return true;
     }
 
     try {
@@ -114,15 +126,16 @@ class LocalNotificationService {
         notificationDetails: details,
         payload: payload,
       );
-    } catch (e) {
-      debugPrint('[LocalNotificationService] Erro ao exibir notificação local: $e');
+      return true;
+    } catch (e, stack) {
+      debugPrint('[LocalNotificationService] Erro ao exibir notificação de teste: $e\n$stack');
+      return false;
     }
   }
 
-  /// Cancela uma notificação agendada ou ativa pelo ID.
-  Future<void> cancelReminder(int id) async {
-    testNotificationLog.removeWhere((item) => item['id'] == id);
-    if (kIsWeb) return;
+  /// Cancela um lembrete específico por ID.
+  Future<void> cancel(int id) async {
+    if (kIsWeb || !_initialized) return;
     try {
       await _plugin.cancel(id: id);
     } catch (e) {
@@ -130,10 +143,9 @@ class LocalNotificationService {
     }
   }
 
-  /// Cancela todas as notificações ativas.
+  /// Cancela todos os lembretes agendados.
   Future<void> cancelAll() async {
-    testNotificationLog.clear();
-    if (kIsWeb) return;
+    if (kIsWeb || !_initialized) return;
     try {
       await _plugin.cancelAll();
     } catch (e) {

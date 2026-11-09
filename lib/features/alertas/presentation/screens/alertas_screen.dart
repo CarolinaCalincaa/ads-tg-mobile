@@ -14,7 +14,8 @@ class AlertasScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final LembretesState state = ref.watch(lembretesNotifierProvider);
-    final LembretesNotifier notifier = ref.read(lembretesNotifierProvider.notifier);
+    final LembretesNotifier notifier =
+        ref.read(lembretesNotifierProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,11 +57,28 @@ class AlertasScreen extends ConsumerWidget {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                              'Notificação de teste disparada: "${config.titulo}"',
-                            ),
+                            behavior: SnackBarBehavior.floating,
                             backgroundColor: AppColors.primaryBrand,
-                            duration: const Duration(seconds: 2),
+                            content: Row(
+                              children: <Widget>[
+                                Icon(
+                                  config.icone,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: AppSpacing.xs),
+                                Expanded(
+                                  child: Text(
+                                    'Notificação de teste disparada: "${config.titulo}"',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            duration: const Duration(seconds: 3),
                           ),
                         );
                       }
