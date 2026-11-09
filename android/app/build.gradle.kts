@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "br.fatec.campinas.produtividade_tcc"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -47,3 +47,4 @@ kotlin {
 flutter {
     source = "../.."
 }
+
