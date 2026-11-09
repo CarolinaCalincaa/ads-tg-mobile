@@ -22,6 +22,7 @@ class PainelDiaState extends Equatable {
     this.semanaBundle,
     this.visaoModo = VisaoModo.dia,
     this.abaDependencia = AbaDependencia.minhasAcoes,
+    this.selectedPilarFilter,
     this.expandedChecklistIds = const <String>{},
     this.failure,
   });
@@ -34,6 +35,7 @@ class PainelDiaState extends Equatable {
   final PainelSemanaBundle? semanaBundle;
   final VisaoModo visaoModo;
   final AbaDependencia abaDependencia;
+  final int? selectedPilarFilter;
   final Set<String> expandedChecklistIds;
   final AppFailure? failure;
 
@@ -46,6 +48,8 @@ class PainelDiaState extends Equatable {
     PainelSemanaBundle? semanaBundle,
     VisaoModo? visaoModo,
     AbaDependencia? abaDependencia,
+    int? selectedPilarFilter,
+    bool clearPilarFilter = false,
     Set<String>? expandedChecklistIds,
     AppFailure? failure,
     bool clearFailure = false,
@@ -56,6 +60,9 @@ class PainelDiaState extends Equatable {
       semanaBundle: semanaBundle ?? this.semanaBundle,
       visaoModo: visaoModo ?? this.visaoModo,
       abaDependencia: abaDependencia ?? this.abaDependencia,
+      selectedPilarFilter: clearPilarFilter
+          ? null
+          : (selectedPilarFilter ?? this.selectedPilarFilter),
       expandedChecklistIds: expandedChecklistIds ?? this.expandedChecklistIds,
       failure: clearFailure ? null : (failure ?? this.failure),
     );
@@ -68,6 +75,7 @@ class PainelDiaState extends Equatable {
         semanaBundle,
         visaoModo,
         abaDependencia,
+        selectedPilarFilter,
         expandedChecklistIds,
         failure,
       ];
@@ -155,6 +163,18 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
     state = state.copyWith(abaDependencia: aba);
   }
 
+  void togglePilarFilter(int idPilar) {
+    if (state.selectedPilarFilter == idPilar) {
+      state = state.copyWith(clearPilarFilter: true);
+    } else {
+      state = state.copyWith(selectedPilarFilter: idPilar);
+    }
+  }
+
+  void clearPilarFilter() {
+    state = state.copyWith(clearPilarFilter: true);
+  }
+
   void toggleChecklistAccordion(String idChecklist) {
     final Set<String> updated = Set<String>.from(state.expandedChecklistIds);
     if (updated.contains(idChecklist)) {
@@ -172,11 +192,16 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
 
     final bool newConcluido = !item.concluido;
 
-    // 1. Atualização Otimista Imediata na UI
+    // 1. Atualização Otimista Imediata na UI (inclui incremento/decremento visual de streak se for hábito)
     final List<TimelineItemEntity> updatedLinha =
         currentBundle.itensLinhaTempo.map((t) {
       if (t.id == item.id) {
-        return t.copyWith(concluido: newConcluido);
+        final int? updatedStreak = item.ehHabito
+            ? (newConcluido
+                ? (t.streakAtual ?? 0) + 1
+                : ((t.streakAtual ?? 1) - 1).clamp(0, 9999))
+            : t.streakAtual;
+        return t.copyWith(concluido: newConcluido, streakAtual: updatedStreak);
       }
       return t;
     }).toList();
@@ -184,7 +209,12 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
     final List<TimelineItemEntity> updatedEspera =
         currentBundle.itensEmEspera.map((t) {
       if (t.id == item.id) {
-        return t.copyWith(concluido: newConcluido);
+        final int? updatedStreak = item.ehHabito
+            ? (newConcluido
+                ? (t.streakAtual ?? 0) + 1
+                : ((t.streakAtual ?? 1) - 1).clamp(0, 9999))
+            : t.streakAtual;
+        return t.copyWith(concluido: newConcluido, streakAtual: updatedStreak);
       }
       return t;
     }).toList();
@@ -197,24 +227,61 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
     );
 
     // 2. Persistência em background via API REST
-    final Result<void> result = await _repository.toggleTaskStatus(
-      item.id,
-      newConcluido,
-    );
+    if (item.ehHabito) {
+      final Result<Map<String, dynamic>> result =
+          await _repository.toggleHabitExecution(
+        item.id,
+        currentBundle.data,
+        newConcluido,
+      );
 
-    result.fold(
-      onFailure: (AppFailure failure) {
-        // Reverte imediatamente em caso de erro e exibe alerta
-        state = state.copyWith(
-          status: PainelStatus.error,
-          bundle: currentBundle,
-          failure: failure,
-        );
-      },
-      onSuccess: (_) {
-        // Sucesso garantido, o estado já estava sincronizado
-      },
-    );
+      result.fold(
+        onFailure: (AppFailure failure) {
+          // Reverte imediatamente em caso de erro e exibe alerta
+          state = state.copyWith(
+            status: PainelStatus.error,
+            bundle: currentBundle,
+            failure: failure,
+          );
+        },
+        onSuccess: (data) {
+          // Se a API retornou o streakAtual recalculado, sincroniza no estado
+          if (data['streakAtual'] is int) {
+            final int streakApi = data['streakAtual'] as int;
+            final updated = state.bundle?.itensLinhaTempo.map((t) {
+              if (t.id == item.id) {
+                return t.copyWith(streakAtual: streakApi);
+              }
+              return t;
+            }).toList();
+            if (updated != null && state.bundle != null) {
+              state = state.copyWith(
+                bundle: state.bundle!.copyWith(itensLinhaTempo: updated),
+              );
+            }
+          }
+        },
+      );
+    } else {
+      final Result<void> result = await _repository.toggleTaskStatus(
+        item.id,
+        newConcluido,
+      );
+
+      result.fold(
+        onFailure: (AppFailure failure) {
+          // Reverte imediatamente em caso de erro e exibe alerta
+          state = state.copyWith(
+            status: PainelStatus.error,
+            bundle: currentBundle,
+            failure: failure,
+          );
+        },
+        onSuccess: (_) {
+          // Sucesso garantido, o estado já estava sincronizado
+        },
+      );
+    }
   }
 
   /// Toggle OTIMISTA de subitem de checklist em 1 clique (RF20)
@@ -387,6 +454,82 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
         itensLinhaTempo: updatedLinhaTempo,
         itensEmEspera: updatedEmEspera,
       ),
+    );
+  }
+
+  Future<bool> createHabit(Map<String, dynamic> payload) async {
+    state = state.copyWith(status: PainelStatus.loading, clearFailure: true);
+    final Result<Map<String, dynamic>> result =
+        await _repository.createHabit(payload);
+    return result.fold(
+      onFailure: (AppFailure failure) {
+        state = state.copyWith(
+          status: PainelStatus.error,
+          failure: failure,
+        );
+        return false;
+      },
+      onSuccess: (_) {
+        final String dateStr = ref.read(selectedDateStringProvider);
+        loadDia(dateStr);
+        return true;
+      },
+    );
+  }
+
+  Future<bool> updateHabit(String id, Map<String, dynamic> payload) async {
+    state = state.copyWith(status: PainelStatus.loading, clearFailure: true);
+    final Result<Map<String, dynamic>> result =
+        await _repository.updateHabit(id, payload);
+    return result.fold(
+      onFailure: (AppFailure failure) {
+        state = state.copyWith(
+          status: PainelStatus.error,
+          failure: failure,
+        );
+        return false;
+      },
+      onSuccess: (_) {
+        final String dateStr = ref.read(selectedDateStringProvider);
+        loadDia(dateStr);
+        return true;
+      },
+    );
+  }
+
+  Future<bool> deleteHabit(String id) async {
+    final PainelDiaBundle? currentBundle = state.bundle;
+    if (currentBundle != null) {
+      // Remoção otimista visual
+      state = state.copyWith(
+        bundle: currentBundle.copyWith(
+          itensLinhaTempo: currentBundle.itensLinhaTempo
+              .where((t) => t.id != id)
+              .toList(),
+          itensEmEspera: currentBundle.itensEmEspera
+              .where((t) => t.id != id)
+              .toList(),
+        ),
+      );
+    }
+
+    final Result<void> result = await _repository.deleteHabit(id);
+    return result.fold(
+      onFailure: (AppFailure failure) {
+        if (currentBundle != null) {
+          state = state.copyWith(
+            status: PainelStatus.error,
+            bundle: currentBundle,
+            failure: failure,
+          );
+        }
+        return false;
+      },
+      onSuccess: (_) {
+        final String dateStr = ref.read(selectedDateStringProvider);
+        loadDia(dateStr);
+        return true;
+      },
     );
   }
 }

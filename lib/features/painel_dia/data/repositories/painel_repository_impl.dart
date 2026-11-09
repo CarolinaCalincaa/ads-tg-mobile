@@ -109,6 +109,58 @@ class PainelRepositoryImpl implements PainelRepository {
   }
 
   @override
+  Future<Result<Map<String, dynamic>>> toggleHabitExecution(
+    String id,
+    String data,
+    bool concluido,
+  ) async {
+    try {
+      final Map<String, dynamic> response =
+          await remoteDataSource.toggleHabitExecution(id, data, concluido);
+      return Success<Map<String, dynamic>>(response);
+    } catch (e) {
+      return FailureResult<Map<String, dynamic>>(ApiExceptionMapper.map(e));
+    }
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>>> createHabit(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final Map<String, dynamic> response =
+          await remoteDataSource.createHabit(payload);
+      return Success<Map<String, dynamic>>(response);
+    } catch (e) {
+      return FailureResult<Map<String, dynamic>>(ApiExceptionMapper.map(e));
+    }
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>>> updateHabit(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final Map<String, dynamic> response =
+          await remoteDataSource.updateHabit(id, payload);
+      return Success<Map<String, dynamic>>(response);
+    } catch (e) {
+      return FailureResult<Map<String, dynamic>>(ApiExceptionMapper.map(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> deleteHabit(String id) async {
+    try {
+      await remoteDataSource.deleteHabit(id);
+      return const Success<void>(null);
+    } catch (e) {
+      return FailureResult<void>(ApiExceptionMapper.map(e));
+    }
+  }
+
+  @override
   Future<Result<List<ProjetoEntity>>> getProjetos({String? status}) async {
     try {
       final List<ProjetoEntity> list =

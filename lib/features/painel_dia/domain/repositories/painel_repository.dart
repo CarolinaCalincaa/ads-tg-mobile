@@ -20,6 +20,18 @@ abstract interface class PainelRepository {
   Future<Result<void>> deleteTask(String id);
   Future<Result<void>> toggleTaskStatus(String id, bool concluido);
 
+  Future<Result<Map<String, dynamic>>> toggleHabitExecution(
+    String id,
+    String data,
+    bool concluido,
+  );
+  Future<Result<Map<String, dynamic>>> createHabit(Map<String, dynamic> payload);
+  Future<Result<Map<String, dynamic>>> updateHabit(
+    String id,
+    Map<String, dynamic> payload,
+  );
+  Future<Result<void>> deleteHabit(String id);
+
   Future<Result<List<ProjetoEntity>>> getProjetos({String? status});
   Future<Result<ProjetoEntity>> createProjeto(Map<String, dynamic> payload);
 

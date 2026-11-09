@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:produtividade_tcc/core/router/responsive_shell_scaffold.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
+import 'package:produtividade_tcc/features/alertas/presentation/screens/alertas_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/config_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -11,6 +12,7 @@ import 'package:produtividade_tcc/features/auth/presentation/screens/register_sc
 import 'package:produtividade_tcc/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/screens/painel_dia_screen.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/screens/process_templates_screen.dart';
+import 'package:produtividade_tcc/features/pilares/presentation/screens/monthly_pillars_screen.dart';
 
 /// Rotas nomeadas canônicas da aplicação.
 abstract final class AppRoutes {
@@ -24,6 +26,7 @@ abstract final class AppRoutes {
   static const String alertas = '/alertas';
   static const String config = '/config';
   static const String modelosProcessos = '/modelos-processos';
+  static const String pilaresMensais = '/pilares-mensais';
 
   static const Set<String> publicAuthRoutes = <String>{
     login,
@@ -89,6 +92,12 @@ GoRouter createAppRouter({
         path: AppRoutes.modelosProcessos,
         builder: (BuildContext context, GoRouterState state) {
           return const ProcessTemplatesScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.pilaresMensais,
+        builder: (BuildContext context, GoRouterState state) {
+          return const MonthlyPillarsScreen();
         },
       ),
       GoRoute(
@@ -159,15 +168,7 @@ GoRouter createAppRouter({
               GoRoute(
                 path: AppRoutes.alertas,
                 builder: (BuildContext context, GoRouterState state) {
-                  return Scaffold(
-                    appBar: AppBar(title: const Text('Alertas Saudáveis')),
-                    body: const EmptyStateView(
-                      icon: Icons.notifications_none_rounded,
-                      title: 'Lembretes de Saúde Cognitiva',
-                      description:
-                          'Configure lembretes periódicos de água, pausa ativa, sono e fechamento semanal.',
-                    ),
-                  );
+                  return const AlertasScreen();
                 },
               ),
             ],

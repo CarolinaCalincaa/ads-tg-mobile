@@ -92,6 +92,45 @@ class _FakePainelRepositoryMock implements PainelRepository {
   }
 
   @override
+  Future<Result<Map<String, dynamic>>> toggleHabitExecution(
+    String id,
+    String data,
+    bool concluido,
+  ) async {
+    return Success<Map<String, dynamic>>(<String, dynamic>{
+      'id': id,
+      'concluido': concluido,
+      'streakAtual': concluido ? 5 : 4,
+    });
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>>> createHabit(
+    Map<String, dynamic> payload,
+  ) async {
+    return Success<Map<String, dynamic>>(<String, dynamic>{
+      'id': 'h-new',
+      ...payload,
+    });
+  }
+
+  @override
+  Future<Result<Map<String, dynamic>>> updateHabit(
+    String id,
+    Map<String, dynamic> payload,
+  ) async {
+    return Success<Map<String, dynamic>>(<String, dynamic>{
+      'id': id,
+      ...payload,
+    });
+  }
+
+  @override
+  Future<Result<void>> deleteHabit(String id) async {
+    return const Success<void>(null);
+  }
+
+  @override
   Future<Result<Map<String, dynamic>>> createTask(
     Map<String, dynamic> payload,
   ) async {
