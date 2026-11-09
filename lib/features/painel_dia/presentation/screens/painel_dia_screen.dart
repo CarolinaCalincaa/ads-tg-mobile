@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:produtividade_tcc/core/theme/app_colors.dart';
 import 'package:produtividade_tcc/core/theme/app_spacing.dart';
-import 'package:produtividade_tcc/core/theme/app_typography.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/painel_dia_bundle.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/painel_dia_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/selected_date_provider.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pomodoro_mini_bar.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/compact_capacity_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/date_navigator_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/day_week_segmented_toggle.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/fadiga_alert_banner.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/fatigue_blocked_sheet.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/painel_header.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/reschedule_task_sheet.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/smart_schedule_fab.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/task_form_sheet.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/timeline_slot_row.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/weekly_overview_section.dart';
@@ -55,11 +59,58 @@ class PainelDiaScreen extends ConsumerWidget {
     );
   }
 
+  void _abrirFatigueBlockedSheet(BuildContext context, String dataAtual) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FatigueBlockedSheet(
+        dataAtual: dataAtual,
+        onAgendarEmDataLivre: (dataLivre) {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: AppColors.surfaceCard,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (ctx) => TaskFormSheet(initialDate: dataLivre),
+          );
+        },
+        onRegistrarEmEspera: () {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: AppColors.surfaceCard,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (ctx) => const TaskFormSheet(
+              initialIndicadorDependencia: 'EM_ESPERA',
+            ),
+          );
+        },
+        onDesafogarHoje: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Toque no menu ⋮ de qualquer atividade para remanejá-la para outra data.',
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final PainelDiaState state = ref.watch(painelDiaNotifierProvider);
-    final PainelDiaBundle bundle = state.bundle ??
-        PainelDiaBundle.vazio(ref.watch(selectedDateStringProvider));
+    final String dataAtual = ref.watch(selectedDateStringProvider);
+    final PainelDiaBundle bundle = state.bundle ?? PainelDiaBundle.vazio(dataAtual);
 
     final bool emAlertaFadiga = bundle.capacidadeDia.emAlertaFadiga;
 
@@ -81,78 +132,61 @@ class PainelDiaScreen extends ConsumerWidget {
             : bundle.itensEmEspera;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('nova_atividade_fab'),
-        onPressed: () => _abrirFormNovaTarefa(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Nova Atividade'),
+      floatingActionButton: SmartScheduleFab(
+        novosAgendamentosBloqueados:
+            bundle.capacidadeDia.novosAgendamentosBloqueados,
+        onNovaAtividade: () => _abrirFormNovaTarefa(context),
+        onBloqueadoTap: () => _abrirFatigueBlockedSheet(context, dataAtual),
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            final String dateStr = ref.read(selectedDateStringProvider);
-            if (state.visaoModo == VisaoModo.semana) {
-              await ref
-                  .read(painelDiaNotifierProvider.notifier)
-                  .loadSemana(dateStr);
-            } else {
-              await ref.read(painelDiaNotifierProvider.notifier).loadDia(dateStr);
-            }
-          },
-          child: CustomScrollView(
-            slivers: <Widget>[
-              // 1. Cabeçalho Principal (Saudação + Avatar)
-              const SliverToBoxAdapter(child: PainelHeader()),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  final String dateStr = ref.read(selectedDateStringProvider);
+                  if (state.visaoModo == VisaoModo.semana) {
+                    await ref
+                        .read(painelDiaNotifierProvider.notifier)
+                        .loadSemana(dateStr);
+                  } else {
+                    await ref
+                        .read(painelDiaNotifierProvider.notifier)
+                        .loadDia(dateStr);
+                  }
+                },
+                child: CustomScrollView(
+                  slivers: <Widget>[
+                    // 1. Cabeçalho Principal (Saudação + Avatar)
+                    const SliverToBoxAdapter(child: PainelHeader()),
 
-              // 2. Navegador de Datas (< Hoje >) + Seletor Dia / Semana
-              const SliverToBoxAdapter(
-                child: Column(
-                  children: <Widget>[
-                    DateNavigatorBar(),
-                    SizedBox(height: AppSpacing.xs),
-                    DayWeekSegmentedToggle(),
-                    SizedBox(height: AppSpacing.sm),
-                  ],
-                ),
-              ),
-
-              // 3. Banner Alerta de Fadiga Mental (RN02)
-              if (emAlertaFadiga && state.visaoModo == VisaoModo.dia)
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs,
-                    ),
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    decoration: BoxDecoration(
-                      color: AppColors.fatigueCritical.withValues(alpha: 0.12),
-                      borderRadius: AppSpacing.cardRadius,
-                      border: Border.all(
-                        color: AppColors.fatigueCritical.withValues(alpha: 0.5),
+                    // 2. Navegador de Datas (< Hoje >) + Seletor Dia / Semana
+                    const SliverToBoxAdapter(
+                      child: Column(
+                        children: <Widget>[
+                          DateNavigatorBar(),
+                          SizedBox(height: AppSpacing.xs),
+                          DayWeekSegmentedToggle(),
+                          SizedBox(height: AppSpacing.sm),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: <Widget>[
-                        const Icon(
-                          Icons.warning_amber_rounded,
-                          color: AppColors.fatigueCritical,
-                          size: 22,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Expanded(
-                          child: Text(
-                            'Alerta de Fadiga Mental: ${bundle.capacidadeDia.percentualOcupacao}% do dia comprometido. Novos agendamentos bloqueados.',
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.fatigueCritical,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+
+                    // 3. Capacidade Diária / Banner Alerta de Fadiga Mental (RN02 / RF16 / RF17)
+                    if (state.visaoModo == VisaoModo.dia)
+                      SliverToBoxAdapter(
+                        child: emAlertaFadiga
+                            ? FadigaAlertBanner(
+                                capacidade: bundle.capacidadeDia,
+                                onRemanejar: () => _abrirFatigueBlockedSheet(
+                                  context,
+                                  dataAtual,
+                                ),
+                              )
+                            : CompactCapacityBar(
+                                capacidade: bundle.capacidadeDia,
+                              ),
+                      ),
 
               // 4. Se Visão da Semana estiver ativa:
               if (state.visaoModo == VisaoModo.semana)
@@ -257,6 +291,10 @@ class PainelDiaScreen extends ConsumerWidget {
           ),
         ),
       ),
+      const ActivePomodoroMiniBar(),
+    ],
+  ),
+),
     );
   }
 }

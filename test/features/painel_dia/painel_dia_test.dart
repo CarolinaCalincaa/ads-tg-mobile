@@ -220,6 +220,16 @@ class _FakePainelRepository implements PainelRepository {
       ),
     );
   }
+
+  @override
+  Future<Result<Map<String, dynamic>>> registrarSessaoPomodoro(
+    Map<String, dynamic> payload,
+  ) async {
+    return const Success<Map<String, dynamic>>(<String, dynamic>{
+      'id': 'sessao-1',
+      'concluido': true,
+    });
+  }
 }
 
 void main() {

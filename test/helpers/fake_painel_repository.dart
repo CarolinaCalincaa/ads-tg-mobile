@@ -128,4 +128,18 @@ class FakePainelRepository implements PainelRepository {
       ),
     );
   }
+
+  final List<Map<String, dynamic>> sessaoPomodoroRegistros =
+      <Map<String, dynamic>>[];
+
+  @override
+  Future<Result<Map<String, dynamic>>> registrarSessaoPomodoro(
+    Map<String, dynamic> payload,
+  ) async {
+    sessaoPomodoroRegistros.add(payload);
+    return Success<Map<String, dynamic>>(<String, dynamic>{
+      'id': 'pomodoro-${sessaoPomodoroRegistros.length}',
+      ...payload,
+    });
+  }
 }
