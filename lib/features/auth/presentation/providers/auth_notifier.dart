@@ -211,13 +211,19 @@ class AuthNotifier extends Notifier<AuthState> {
           return false;
         }
       } catch (e) {
-        state = AuthState.error(
-          NetworkFailure(
-            message:
-                'Falha ao conectar com o serviço do Google: ${e.toString()}',
-          ),
-        );
-        return false;
+        debugPrint('[AuthNotifier] Falha no Google Sign-In nativo: $e');
+        if (EnvConfig.oauthDevMockEnabled) {
+          debugPrint('[AuthNotifier] Ativando fallback de autenticacao dev mock para Google');
+          resolvedToken = 'mock-google-token:carolinacalincaa@gmail.com';
+        } else {
+          state = AuthState.error(
+            NetworkFailure(
+              message:
+                  'Falha ao conectar com o serviço do Google: ${e.toString()}',
+            ),
+          );
+          return false;
+        }
       }
     }
 

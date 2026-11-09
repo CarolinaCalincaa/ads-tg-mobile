@@ -2,10 +2,12 @@
 abstract final class EnvConfig {
   /// URL base da API REST central (NestJS).
   ///
-  /// Pode ser sobrescrita com `--dart-define=API_BASE_URL=https://...`.
+  /// O valor padrão agora aponta diretamente para o backend publicado no Render,
+  /// garantindo que funcione imediatamente no celular físico sem precisar passar flags.
+  /// Pode ser sobrescrita localmente com `--dart-define=API_BASE_URL=http://localhost:3000/api/v1`.
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:3000/api/v1',
+    defaultValue: 'https://ads-tg-api.onrender.com/api/v1',
   );
 
   /// Client ID OAuth 2.0 do Google (opcional em dev quando mock está ativo).
@@ -28,11 +30,11 @@ abstract final class EnvConfig {
     defaultValue: true,
   );
 
-  /// Timeout de conexão HTTP padrão (5 segundos).
-  static const Duration connectTimeout = Duration(seconds: 5);
+  /// Timeout de conexão HTTP padrão (15 segundos para redes móveis).
+  static const Duration connectTimeout = Duration(seconds: 15);
 
-  /// Timeout de leitura/recebimento HTTP padrão (5 segundos).
-  static const Duration receiveTimeout = Duration(seconds: 5);
+  /// Timeout de leitura/recebimento HTTP padrão (15 segundos para redes móveis).
+  static const Duration receiveTimeout = Duration(seconds: 15);
 
   /// Nome de exibição da aplicação.
   static const String appName = 'Calma Cognitiva';
