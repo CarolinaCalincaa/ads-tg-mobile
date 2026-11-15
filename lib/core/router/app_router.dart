@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:produtividade_tcc/core/router/responsive_shell_scaffold.dart';
 import 'package:produtividade_tcc/core/widgets/empty_state_view.dart';
-import 'package:produtividade_tcc/features/alertas/presentation/screens/alertas_screen.dart';
+// A tela de Alertas (AlertasScreen) permanece preservada no codebase em features/alertas,
+// mas foi desativada do menu principal e substituída pela aba Rotina (RotinaScreen).
+// import 'package:produtividade_tcc/features/alertas/presentation/screens/alertas_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/config_screen.dart';
 import 'package:produtividade_tcc/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -15,6 +17,7 @@ import 'package:produtividade_tcc/features/fechamento/presentation/screens/fecha
 import 'package:produtividade_tcc/features/painel_dia/presentation/screens/painel_dia_screen.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/screens/process_templates_screen.dart';
 import 'package:produtividade_tcc/features/pilares/presentation/screens/monthly_pillars_screen.dart';
+import 'package:produtividade_tcc/features/rotina/presentation/screens/rotina_screen.dart';
 
 /// Rotas nomeadas canônicas da aplicação.
 abstract final class AppRoutes {
@@ -25,7 +28,8 @@ abstract final class AppRoutes {
 
   static const String painel = '/painel';
   static const String relatorios = '/relatorios';
-  static const String alertas = '/alertas';
+  static const String rotina = '/rotina';
+  static const String alertas = '/alertas'; // Mantida por compatibilidade; desativada do menu
   static const String config = '/config';
   static const String modelosProcessos = '/modelos-processos';
   static const String pilaresMensais = '/pilares-mensais';
@@ -63,8 +67,8 @@ String? evaluateAuthRedirect({
   }
 
   if (isAuthenticated &&
-      (matchedLocation == AppRoutes.login ||
-          matchedLocation == AppRoutes.register)) {
+       (matchedLocation == AppRoutes.login ||
+           matchedLocation == AppRoutes.register)) {
     return AppRoutes.painel;
   }
 
@@ -72,7 +76,7 @@ String? evaluateAuthRedirect({
 }
 
 /// Constrói o [GoRouter] com `StatefulShellRoute.indexedStack` para as 4 abas principais
-/// e proteção reativa de rotas via [AuthNotifier].
+/// (`Painel`, `Relatórios`, `Rotina`, `Config.`) e proteção reativa de rotas via [AuthNotifier].
 GoRouter createAppRouter({
   String initialLocation = AppRoutes.painel,
   Listenable? refreshListenable,
@@ -218,9 +222,9 @@ GoRouter createAppRouter({
           StatefulShellBranch(
             routes: <RouteBase>[
               GoRoute(
-                path: AppRoutes.alertas,
+                path: AppRoutes.rotina,
                 builder: (BuildContext context, GoRouterState state) {
-                  return const AlertasScreen();
+                  return const RotinaScreen();
                 },
               ),
             ],
@@ -258,3 +262,27 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
   ref.onDispose(router.dispose);
   return router;
 });
+
+/// Adaptador `ChangeNotifier` que notifica o [GoRouter] sempre que o estado de
+/// autenticação em [authNotifierProvider] é alterado.
+class RouterAuthRefreshNotifier extends ChangeNotifier {
+  RouterAuthRefreshNotifier(Ref ref) {
+    _subscription = ref.listen<AuthState>(
+      authNotifierProvider,
+      (AuthState? previous, AuthState next) {
+        if (previous?.status != next.status ||
+            previous?.isAuthenticated != next.isAuthenticated) {
+          notifyListeners();
+        }
+      },
+    );
+  }
+
+  late final ProviderSubscription<AuthState> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.close();
+    super.dispose();
+  }
+}

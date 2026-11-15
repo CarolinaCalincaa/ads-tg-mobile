@@ -25,7 +25,7 @@ class _ProjectFormDialogState extends ConsumerState<ProjectFormDialog> {
     PilarResumoEntity(idPilar: 1, codigo: 'SAUDE', nome: 'Saúde', corHex: '#22C55E', corFundoHex: '#F0FDF4', icone: 'heart_pulse'),
     PilarResumoEntity(idPilar: 2, codigo: 'MOVIMENTO', nome: 'Movimento', corHex: '#F97316', corFundoHex: '#FFF7ED', icone: 'activity'),
     PilarResumoEntity(idPilar: 3, codigo: 'SONO', nome: 'Sono', corHex: '#6366F1', corFundoHex: '#EEF2FF', icone: 'moon'),
-    PilarResumoEntity(idPilar: 4, codigo: 'EQUILIBRIO_MENTAL', nome: 'Equilíbrio', corHex: '#EC4899', corFundoHex: '#FDF2F8', icone: 'brain'),
+    PilarResumoEntity(idPilar: 4, codigo: 'EQUILIBRIO_MENTAL', nome: 'Mente', corHex: '#EC4899', corFundoHex: '#FDF2F8', icone: 'brain'),
     PilarResumoEntity(idPilar: 5, codigo: 'ESTUDOS', nome: 'Estudos', corHex: '#10B981', corFundoHex: '#ECFDF5', icone: 'book_open'),
     PilarResumoEntity(idPilar: 6, codigo: 'FINANCAS', nome: 'Finanças', corHex: '#EAB308', corFundoHex: '#FEFCE8', icone: 'wallet'),
     PilarResumoEntity(idPilar: 7, codigo: 'CARREIRA', nome: 'Carreira', corHex: '#0EA5E9', corFundoHex: '#F0F9FF', icone: 'briefcase'),

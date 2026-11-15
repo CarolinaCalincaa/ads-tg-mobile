@@ -57,7 +57,15 @@ class FechamentoState {
 class FechamentoNotifier extends Notifier<FechamentoState> {
   @override
   FechamentoState build() {
-    return const FechamentoState();
+    final String hoje = DateTime.now().toIso8601String().substring(0, 10);
+    return FechamentoState(
+      tipoCiclo: 'SEMANAL',
+      dataRef: hoje,
+      previa: FechamentoPrevia.padrao(
+        tipoCiclo: 'SEMANAL',
+        dataRef: hoje,
+      ),
+    );
   }
 
   FechamentoRepository get _repository =>
@@ -73,10 +81,18 @@ class FechamentoNotifier extends Notifier<FechamentoState> {
             ? state.dataRef
             : DateTime.now().toIso8601String().substring(0, 10));
 
+    final FechamentoPrevia previaFallback =
+        (state.previa != null &&
+                state.previa!.tipoCiclo == ciclo &&
+                state.dataRef == data)
+            ? state.previa!
+            : FechamentoPrevia.padrao(tipoCiclo: ciclo, dataRef: data);
+
     state = state.copyWith(
       status: FechamentoStatus.loading,
       tipoCiclo: ciclo,
       dataRef: data,
+      previa: previaFallback,
     );
 
     final Result<FechamentoPrevia> result = await _repository.getPrevia(
@@ -88,6 +104,7 @@ class FechamentoNotifier extends Notifier<FechamentoState> {
       onFailure: (AppFailure failure) {
         state = state.copyWith(
           status: FechamentoStatus.error,
+          previa: state.previa ?? previaFallback,
           errorMessage: failure.message,
         );
       },
@@ -112,16 +129,16 @@ class FechamentoNotifier extends Notifier<FechamentoState> {
     required String vitoriaReconhecer,
     required String fracassoAceitar,
   }) async {
-    final FechamentoPrevia? previa = state.previa;
-    if (previa == null) {
-      state = state.copyWith(
-        status: FechamentoStatus.error,
-        errorMessage: 'Nenhuma prévia carregada para salvar.',
-      );
-      return false;
-    }
+    final FechamentoPrevia previa = state.previa ??
+        FechamentoPrevia.padrao(
+          tipoCiclo: state.tipoCiclo,
+          dataRef: state.dataRef.isNotEmpty ? state.dataRef : null,
+        );
 
-    state = state.copyWith(status: FechamentoStatus.saving);
+    state = state.copyWith(
+      status: FechamentoStatus.saving,
+      previa: previa,
+    );
 
     final Result<FechamentoEntity> result = await _repository.salvarFechamento(
       tipoCiclo: state.tipoCiclo,

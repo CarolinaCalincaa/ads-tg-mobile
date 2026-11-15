@@ -39,24 +39,20 @@ class FechamentoRepositoryImpl implements FechamentoRepository {
     String? fracassoAceitar,
   }) async {
     try {
+      final Map<String, dynamic> dadosConsolidados = <String, dynamic>{
+        ...metricas.toJson(),
+        if (dataFim.isNotEmpty) 'dataFim': dataFim,
+        if (rotuloPeriodo.isNotEmpty) 'rotuloPeriodo': rotuloPeriodo,
+      };
+
       final Map<String, dynamic> payload = <String, dynamic>{
         'tipoCiclo': tipoCiclo,
-        'dataInicio': dataInicio,
-        'dataFim': dataFim,
-        'rotuloPeriodo': rotuloPeriodo,
-        'dadosConsolidados': metricas.toJson(),
-        ...?acaoFuncionouBem == null
-            ? null
-            : <String, dynamic>{'acaoFuncionouBem': acaoFuncionouBem},
-        ...?oqueFazerDiferente == null
-            ? null
-            : <String, dynamic>{'oqueFazerDiferente': oqueFazerDiferente},
-        ...?vitoriaReconhecer == null
-            ? null
-            : <String, dynamic>{'vitoriaReconhecer': vitoriaReconhecer},
-        ...?fracassoAceitar == null
-            ? null
-            : <String, dynamic>{'fracassoAceitar': fracassoAceitar},
+        'dataInicioCiclo': dataInicio,
+        'dadosConsolidados': dadosConsolidados,
+        'acaoFuncionouBem': ?acaoFuncionouBem,
+        'oqueFazerDiferente': ?oqueFazerDiferente,
+        'vitoriaReconhecer': ?vitoriaReconhecer,
+        'fracassoAceitar': ?fracassoAceitar,
       };
 
       final FechamentoEntity entity =

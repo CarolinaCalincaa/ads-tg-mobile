@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:produtividade_tcc/core/error/app_failure.dart';
+import 'package:produtividade_tcc/core/error/result.dart';
 import 'package:produtividade_tcc/features/fechamento/data/repositories/fechamento_repository_impl.dart';
 import 'package:produtividade_tcc/features/fechamento/domain/entities/fechamento_entity.dart';
 import 'package:produtividade_tcc/features/fechamento/presentation/screens/fechamento_screen.dart';
 
 import '../../helpers/fake_fechamento_repository.dart';
+
+class _FailingPreviaRepository extends FakeFechamentoRepository {
+  @override
+  Future<Result<FechamentoPrevia>> getPrevia({
+    required String tipoCiclo,
+    required String dataRef,
+  }) async {
+    return const FailureResult<FechamentoPrevia>(
+      NetworkFailure(message: 'Sem conexão com a prévia'),
+    );
+  }
+}
 
 void main() {
   group('FechamentoScreen Widget Tests (Mockup 02 / RF22 / E06-T02)', () {
@@ -30,6 +44,46 @@ void main() {
         ),
       );
     });
+
+    test(
+      'FechamentoPrevia.fromJson faz parse do formato real do backend (dataInicioCiclo e fechamentoSalvo)',
+      () {
+        final Map<String, dynamic> backendJson = <String, dynamic>{
+          'tipoCiclo': 'SEMANAL',
+          'dataRef': '2026-10-16',
+          'dataInicioCiclo': '2026-10-12',
+          'dataFimCiclo': '2026-10-18',
+          'totalDiasCiclo': 7,
+          'habitosConcluidos': 18,
+          'habitosEsperados': 24,
+          'consistenciaPercentual': 75,
+          'diasAtivos': 6,
+          'sequenciaAtualDias': 5,
+          'fechamentoSalvo': <String, dynamic>{
+            'id': 'fechamento-xyz',
+            'acaoFuncionouBem': 'Acordar cedo',
+            'oqueFazerDiferente': 'Dormir 22h',
+            'vitoriaReconhecer': 'Foco no TCC',
+            'fracassoAceitar': 'Pouca água',
+            'dataFechamento': '2026-10-18',
+          },
+        };
+
+        final FechamentoPrevia previa = FechamentoPrevia.fromJson(backendJson);
+        expect(previa.tipoCiclo, 'SEMANAL');
+        expect(previa.dataInicio, '2026-10-12');
+        expect(previa.dataFim, '2026-10-18');
+        expect(previa.rotuloPeriodo, '12 — 18 de outubro');
+        expect(previa.metricas.consistenciaPercentual, 75);
+        expect(previa.metricas.habitosConcluidos, 18);
+        expect(previa.metricas.habitosEsperados, 24);
+        expect(previa.acaoFuncionouBem, 'Acordar cedo');
+        expect(previa.oqueFazerDiferente, 'Dormir 22h');
+        expect(previa.vitoriaReconhecer, 'Foco no TCC');
+        expect(previa.fracassoAceitar, 'Pouca água');
+        expect(previa.fechamentoExistenteId, 'fechamento-xyz');
+      },
+    );
 
     testWidgets(
       'renderiza Mockup 02: header 74%, 3 metric cards e 4 cards guiados',
@@ -125,6 +179,45 @@ void main() {
         expect(chamada['fracassoAceitar'], 'Aceitar imprevistos na quinta-feira');
 
         // SnackBar de sucesso exibida
+        expect(find.text('Fechamento reflexivo salvo com sucesso!'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'mesmo quando getPrevia falha, mantém prévia padrão calculada e permite salvar fechamento',
+      (WidgetTester tester) async {
+        final _FailingPreviaRepository failingRepo = _FailingPreviaRepository();
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              fechamentoRepositoryProvider.overrideWithValue(failingRepo),
+            ],
+            child: const MaterialApp(
+              home: FechamentoScreen(
+                initialTipoCiclo: 'SEMANAL',
+                initialDataRef: '2026-10-15',
+              ),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Mesmo com falha no getPrevia, exibe o rótulo do período calculado localmente e os cards
+        expect(find.text('12 — 18 de outubro'), findsOneWidget);
+        expect(find.byKey(const Key('metric_card_habitos')), findsOneWidget);
+
+        final Finder textFieldFinder = find.byType(TextField);
+        await tester.enterText(textFieldFinder.at(0), 'Mantive a calma');
+
+        await tester.ensureVisible(find.byKey(const Key('btn_finalizar_fechamento')));
+        await tester.tap(find.byKey(const Key('btn_finalizar_fechamento')));
+        await tester.pumpAndSettle();
+
+        expect(failingRepo.chamadasSalvar.length, 1);
+        expect(failingRepo.chamadasSalvar.first['dataInicio'], '2026-10-12');
+        expect(failingRepo.chamadasSalvar.first['acaoFuncionouBem'], 'Mantive a calma');
         expect(find.text('Fechamento reflexivo salvo com sucesso!'), findsOneWidget);
       },
     );

@@ -27,7 +27,7 @@ class FechamentoRemoteDataSourceImpl implements FechamentoRemoteDataSource {
     required String dataRef,
   }) async {
     final Response<dynamic> response = await dio.get<dynamic>(
-      '/api/v1/fechamentos/previa',
+      '/fechamentos/previa',
       queryParameters: <String, dynamic>{
         'tipoCiclo': tipoCiclo,
         'dataRef': dataRef,
@@ -46,7 +46,7 @@ class FechamentoRemoteDataSourceImpl implements FechamentoRemoteDataSource {
     Map<String, dynamic> payload,
   ) async {
     final Response<dynamic> response = await dio.post<dynamic>(
-      '/api/v1/fechamentos',
+      '/fechamentos',
       data: payload,
     );
 
@@ -65,7 +65,7 @@ class FechamentoRemoteDataSourceImpl implements FechamentoRemoteDataSource {
     }
 
     final Response<dynamic> response = await dio.get<dynamic>(
-      '/api/v1/fechamentos',
+      '/fechamentos',
       queryParameters: query,
     );
 
@@ -82,7 +82,7 @@ class FechamentoRemoteDataSourceImpl implements FechamentoRemoteDataSource {
   @override
   Future<FechamentoEntity> getFechamentoById(String id) async {
     final Response<dynamic> response = await dio.get<dynamic>(
-      '/api/v1/fechamentos/$id',
+      '/fechamentos/$id',
     );
 
     final dynamic data = response.data;

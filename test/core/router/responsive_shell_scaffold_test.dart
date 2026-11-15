@@ -6,8 +6,10 @@ import 'package:produtividade_tcc/app.dart';
 import 'package:produtividade_tcc/features/auth/domain/entities/usuario_entity.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/data/repositories/painel_repository_impl.dart';
+import 'package:produtividade_tcc/features/rotina/data/repositories/rotina_repository_impl.dart';
 
 import '../../helpers/fake_painel_repository.dart';
+import '../../helpers/fake_rotina_repository.dart';
 
 void main() {
   setUpAll(() {
@@ -23,7 +25,7 @@ void main() {
 
   group('ResponsiveShellScaffold & GoRouter 4-Tab Navigation (E01-T05)', () {
     testWidgets(
-      'displays bottom NavigationBar on mobile viewport (390px) and navigates across 4 tabs',
+      'displays bottom NavigationBar on mobile viewport (390px) and navigates across 4 tabs (Painel, Relatórios, Rotina, Config.)',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(390, 844);
         tester.view.devicePixelRatio = 1.0;
@@ -45,6 +47,9 @@ void main() {
               painelRepositoryProvider.overrideWithValue(
                 FakePainelRepository(),
               ),
+              rotinaRepositoryProvider.overrideWithValue(
+                FakeRotinaRepository(),
+              ),
             ],
             child: const ProdutividadeTccApp(),
           ),
@@ -63,10 +68,11 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Evolução & Fechamento Reflexivo'), findsOneWidget);
 
-        // Navigate to Tab 2: Alertas
-        await tester.tap(find.text('Alertas'));
+        // Navigate to Tab 2: Rotina (substituiu Alertas no menu)
+        expect(find.text('Alertas'), findsNothing);
+        await tester.tap(find.text('Rotina'));
         await tester.pumpAndSettle();
-        expect(find.text('Lembretes de Saúde Cognitiva'), findsOneWidget);
+        expect(find.text('Centro de Controle da Rotina'), findsOneWidget);
 
         // Navigate to Tab 3: Config.
         await tester.tap(find.text('Config.'));
@@ -102,6 +108,9 @@ void main() {
               ),
               painelRepositoryProvider.overrideWithValue(
                 FakePainelRepository(),
+              ),
+              rotinaRepositoryProvider.overrideWithValue(
+                FakeRotinaRepository(),
               ),
             ],
             child: const ProdutividadeTccApp(),

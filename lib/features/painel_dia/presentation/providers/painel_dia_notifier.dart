@@ -341,7 +341,7 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
     );
   }
 
-  Future<bool> createTask(Map<String, dynamic> payload) async {
+  Future<String?> createTaskWithId(Map<String, dynamic> payload) async {
     state = state.copyWith(status: PainelStatus.loading, clearFailure: true);
     final Result<Map<String, dynamic>> result =
         await _repository.createTask(payload);
@@ -352,14 +352,26 @@ class PainelDiaNotifier extends Notifier<PainelDiaState> {
           status: PainelStatus.error,
           failure: failure,
         );
-        return false;
+        return null;
       },
-      onSuccess: (_) {
+      onSuccess: (Map<String, dynamic> data) {
+        String? taskId;
+        final dynamic tarefaMap = data['tarefa'];
+        if (tarefaMap is Map<String, dynamic> && tarefaMap['id'] is String) {
+          taskId = tarefaMap['id'] as String;
+        } else if (data['id'] is String) {
+          taskId = data['id'] as String;
+        }
         final String dateStr = ref.read(selectedDateStringProvider);
         loadDia(dateStr);
-        return true;
+        return taskId ?? '';
       },
     );
+  }
+
+  Future<bool> createTask(Map<String, dynamic> payload) async {
+    final String? id = await createTaskWithId(payload);
+    return id != null;
   }
 
   Future<bool> updateTask(String id, Map<String, dynamic> payload) async {

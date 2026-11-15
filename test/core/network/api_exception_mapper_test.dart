@@ -29,11 +29,11 @@ void main() {
       expect(client.instance.options.baseUrl, EnvConfig.apiBaseUrl);
       expect(
         client.instance.options.connectTimeout,
-        const Duration(seconds: 5),
+        EnvConfig.connectTimeout,
       );
       expect(
         client.instance.options.receiveTimeout,
-        const Duration(seconds: 5),
+        EnvConfig.connectTimeout,
       );
     });
 

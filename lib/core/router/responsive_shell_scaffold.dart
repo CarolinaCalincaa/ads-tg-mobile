@@ -17,7 +17,7 @@ class ShellDestination {
   final IconData selectedIcon;
 }
 
-/// Shell adaptativo das 4 abas (`Painel`, `Relatórios`, `Alertas`, `Config.`) (`RNF03` e `Tech Doc 05 — Seção 2.6`).
+/// Shell adaptativo das 4 abas (`Painel`, `Relatórios`, `Rotina`, `Config.`) (`RNF03` e `Tech Doc 05 — Seção 2.6`).
 ///
 /// - Telas `< 768px` (Mobile): `NavigationBar` inferior.
 /// - Telas `>= 768px` (Tablet/Desktop Web SPA): `NavigationRail` lateral esquerda.
@@ -41,10 +41,16 @@ class ResponsiveShellScaffold extends StatelessWidget {
       selectedIcon: Icons.insights_rounded,
     ),
     ShellDestination(
-      label: 'Alertas',
-      icon: Icons.notifications_none_rounded,
-      selectedIcon: Icons.notifications_rounded,
+      label: 'Rotina',
+      icon: Icons.checklist_rtl_outlined,
+      selectedIcon: Icons.checklist_rtl_rounded,
     ),
+    // Aba Alertas desativada do menu principal (mantida no código para evolução futura)
+    // ShellDestination(
+    //   label: 'Alertas',
+    //   icon: Icons.notifications_none_rounded,
+    //   selectedIcon: Icons.notifications_rounded,
+    // ),
     ShellDestination(
       label: 'Config.',
       icon: Icons.settings_outlined,
