@@ -10,6 +10,7 @@ import 'package:produtividade_tcc/features/habitos/presentation/widgets/habit_fo
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/painel_dia_bundle.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/painel_dia_notifier.dart';
+import 'package:produtividade_tcc/features/painel_dia/presentation/providers/pomodoro_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/selected_date_provider.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pillars_filter_row.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pomodoro_mini_bar.dart';
@@ -37,6 +38,18 @@ class PainelDiaScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => const TaskFormSheet(),
+    );
+  }
+
+  void _abrirFormNovoHabito(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surfaceCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => const HabitFormSheet(),
     );
   }
 
@@ -151,6 +164,7 @@ class PainelDiaScreen extends ConsumerWidget {
         novosAgendamentosBloqueados:
             bundle.capacidadeDia.novosAgendamentosBloqueados,
         onNovaAtividade: () => _abrirFormNovaTarefa(context),
+        onNovoHabito: () => _abrirFormNovoHabito(context),
         onBloqueadoTap: () => _abrirFatigueBlockedSheet(context, dataAtual),
       ),
       body: SafeArea(
@@ -332,6 +346,8 @@ class PainelDiaScreen extends ConsumerWidget {
         ),
       ),
       const ActivePomodoroMiniBar(),
+      if (ref.watch(pomodoroNotifierProvider).isActive)
+        const SizedBox(height: 68),
     ],
   ),
 ),

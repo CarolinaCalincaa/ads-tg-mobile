@@ -24,6 +24,7 @@ class TimelineItemEntity extends Equatable {
     this.descricao,
     this.concluidaEm,
     this.streakAtual,
+    this.diasSemana,
     this.pomodorosConcluidos = 0,
     this.projeto,
     this.checklists = const <ChecklistEntity>[],
@@ -43,6 +44,11 @@ class TimelineItemEntity extends Equatable {
         .map((c) => ChecklistEntity.fromJson(c as Map<String, dynamic>))
         .toList();
 
+    final List<dynamic>? rawDias = json['diasSemana'] as List<dynamic>?;
+    final List<int>? diasSemana = rawDias
+        ?.map((e) => e is int ? e : (int.tryParse(e.toString()) ?? 1))
+        .toList();
+
     return TimelineItemEntity(
       id: json['id'] as String,
       natureza: natureza,
@@ -57,6 +63,7 @@ class TimelineItemEntity extends Equatable {
       concluido: json['concluido'] as bool? ?? false,
       concluidaEm: json['concluidaEm'] as String?,
       streakAtual: json['streakAtual'] as int?,
+      diasSemana: diasSemana,
       pomodorosConcluidos: json['pomodorosConcluidos'] as int? ?? 0,
       pilar: PilarResumoEntity.fromJson(
         json['pilar'] as Map<String, dynamic>? ?? <String, dynamic>{},
@@ -80,6 +87,7 @@ class TimelineItemEntity extends Equatable {
   final bool concluido;
   final String? concluidaEm;
   final int? streakAtual;
+  final List<int>? diasSemana;
   final int pomodorosConcluidos;
   final PilarResumoEntity pilar;
   final ProjetoEntity? projeto;
@@ -106,6 +114,7 @@ class TimelineItemEntity extends Equatable {
     bool? concluido,
     String? concluidaEm,
     int? streakAtual,
+    List<int>? diasSemana,
     int? pomodorosConcluidos,
     PilarResumoEntity? pilar,
     ProjetoEntity? projeto,
@@ -125,6 +134,7 @@ class TimelineItemEntity extends Equatable {
       concluido: concluido ?? this.concluido,
       concluidaEm: concluidaEm ?? this.concluidaEm,
       streakAtual: streakAtual ?? this.streakAtual,
+      diasSemana: diasSemana ?? this.diasSemana,
       pomodorosConcluidos: pomodorosConcluidos ?? this.pomodorosConcluidos,
       pilar: pilar ?? this.pilar,
       projeto: projeto ?? this.projeto,
@@ -146,6 +156,7 @@ class TimelineItemEntity extends Equatable {
         concluido,
         concluidaEm,
         streakAtual,
+        diasSemana,
         pomodorosConcluidos,
         pilar,
         projeto,

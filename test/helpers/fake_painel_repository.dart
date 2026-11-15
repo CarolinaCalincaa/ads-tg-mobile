@@ -51,10 +51,13 @@ class FakePainelRepository implements PainelRepository {
     });
   }
 
+  final List<Map<String, dynamic>> createdHabits = <Map<String, dynamic>>[];
+
   @override
   Future<Result<Map<String, dynamic>>> createHabit(
     Map<String, dynamic> payload,
   ) async {
+    createdHabits.add(payload);
     return Success<Map<String, dynamic>>(<String, dynamic>{
       'id': 'h-new',
       ...payload,

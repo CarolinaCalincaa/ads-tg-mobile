@@ -32,8 +32,8 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
   int _selectedPilarId = 2; // Padrão: Movimento
   late Set<int> _selectedDiasSemana; // 1=Seg..7=Dom
   String? _horarioPadrao; // 'HH:mm'
-  String? _idModeloChecklist;
   bool _isSaving = false;
+  String? _submitError;
 
   static const List<Map<String, dynamic>> _diasSemanaLabels = <Map<String, dynamic>>[
     <String, dynamic>{'dia': 1, 'sigla': 'S', 'nome': 'Seg'},
@@ -57,7 +57,9 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
     );
 
     _selectedPilarId = item?.pilar.idPilar ?? 2;
-    _selectedDiasSemana = <int>{1, 2, 3, 4, 5, 6, 7}; // Todos os dias por padrão
+    _selectedDiasSemana = item?.diasSemana != null && item!.diasSemana!.isNotEmpty
+        ? item.diasSemana!.toSet()
+        : <int>{1, 2, 3, 4, 5, 6, 7};
     _horarioPadrao = item?.horario;
   }
 
@@ -70,7 +72,7 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
   }
 
   Future<void> _selecionarHorario() async {
-    final TimeOfDay initial = _horarioPadrao != null
+    final TimeOfDay initial = _horarioPadrao != null && _horarioPadrao!.contains(':')
         ? TimeOfDay(
             hour: int.tryParse(_horarioPadrao!.split(':')[0]) ?? 7,
             minute: int.tryParse(_horarioPadrao!.split(':')[1]) ?? 0,
@@ -92,67 +94,91 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
   }
 
   Future<void> _salvar() async {
+    setState(() => _submitError = null);
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedDiasSemana.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecione pelo menos um dia da semana para o hábito.'),
-          backgroundColor: AppColors.fatigueCritical,
-        ),
-      );
+      setState(() {
+        _submitError = 'Selecione pelo menos um dia da semana para o hábito.';
+      });
       return;
     }
 
     setState(() => _isSaving = true);
 
     final int duracao = int.tryParse(_duracaoController.text.trim()) ?? 30;
+    final String desc = _descricaoController.text.trim();
+    final List<int> diasOrdenados = _selectedDiasSemana.toList()..sort();
 
+    // Envia apenas os campos aceitos pelo CreateHabitoDto / UpdateHabitoDto (sem nulos rejeitados)
     final Map<String, dynamic> payload = <String, dynamic>{
       'nome': _nomeController.text.trim(),
-      'descricao': _descricaoController.text.trim().isEmpty
-          ? null
-          : _descricaoController.text.trim(),
       'idPilar': _selectedPilarId,
       'duracaoEstimadaMinutos': duracao,
-      'frequenciaSemanal': _selectedDiasSemana.length,
-      'diasSemana': _selectedDiasSemana.toList()..sort(),
-      'horarioPadrao': _horarioPadrao,
-      if (_idModeloChecklist != null)
-        'idModeloChecklist': _idModeloChecklist,
+      'frequenciaSemanal': diasOrdenados.length,
+      'diasSemana': diasOrdenados,
+      if (desc.isNotEmpty) 'descricao': desc,
+      if (_horarioPadrao != null && _horarioPadrao!.trim().isNotEmpty)
+        'horarioPadrao': _horarioPadrao!.trim(),
     };
 
     final PainelDiaNotifier notifier =
         ref.read(painelDiaNotifierProvider.notifier);
 
+    final bool isEditing = widget.initialItem != null;
     final bool success;
-    if (widget.initialItem != null) {
+    if (isEditing) {
       success = await notifier.updateHabit(widget.initialItem!.id, payload);
     } else {
       success = await notifier.createHabit(payload);
     }
 
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.of(context).pop();
-      }
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (success) {
+      final ScaffoldMessengerState? messenger =
+          ScaffoldMessenger.maybeOf(context);
+      Navigator.of(context).pop();
+      messenger?.showSnackBar(
+        SnackBar(
+          content: Text(
+            isEditing
+                ? 'Hábito atualizado com sucesso!'
+                : 'Hábito recorrente criado com sucesso!',
+          ),
+          backgroundColor: AppColors.capacityHealthy,
+        ),
+      );
+    } else {
+      final String errorMsg =
+          ref.read(painelDiaNotifierProvider).failure?.message ??
+              'Não foi possível salvar o hábito. Verifique sua conexão.';
+      setState(() => _submitError = errorMsg);
     }
   }
 
   Future<void> _excluir() async {
     if (widget.initialItem == null) return;
-    setState(() => _isSaving = true);
+    setState(() {
+      _isSaving = true;
+      _submitError = null;
+    });
 
     final bool success = await ref
         .read(painelDiaNotifierProvider.notifier)
         .deleteHabit(widget.initialItem!.id);
 
-    if (mounted) {
-      setState(() => _isSaving = false);
-      if (success) {
-        Navigator.of(context).pop();
-      }
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (success) {
+      Navigator.of(context).pop();
+    } else {
+      final String errorMsg =
+          ref.read(painelDiaNotifierProvider).failure?.message ??
+              'Erro ao excluir o hábito.';
+      setState(() => _submitError = errorMsg);
     }
   }
 
@@ -165,7 +191,7 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
         left: AppSpacing.md,
         right: AppSpacing.md,
         top: AppSpacing.md,
@@ -181,17 +207,51 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text(
-                    isEditing ? 'Editar Hábito' : 'Novo Hábito Recorrente',
-                    style: AppTypography.displayLarge.copyWith(fontSize: 20),
+                  Expanded(
+                    child: Text(
+                      isEditing ? 'Editar Hábito' : 'Novo Hábito Recorrente',
+                      style: AppTypography.displayLarge.copyWith(fontSize: 20),
+                    ),
                   ),
                   IconButton(
+                    key: const Key('close_habit_sheet_button'),
                     icon: const Icon(Icons.close_rounded),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
+
+              if (_submitError != null) ...<Widget>[
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.fatigueCritical.withValues(alpha: 0.1),
+                    borderRadius: AppSpacing.inputRadius,
+                    border: Border.all(color: AppColors.fatigueCritical),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.fatigueCritical,
+                        size: 18,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: Text(
+                          _submitError!,
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.fatigueCritical,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
 
               // Nome
               TextFormField(
@@ -377,6 +437,19 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
                 isLoading: _isSaving,
                 onPressed: _salvar,
               ),
+              const SizedBox(height: AppSpacing.xs),
+
+              // Botão Cancelar explícito
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  key: const Key('cancel_habit_button'),
+                  onPressed: _isSaving
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+              ),
 
               if (isEditing) ...<Widget>[
                 const SizedBox(height: AppSpacing.xs),
@@ -394,7 +467,7 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
                   ),
                 ),
               ],
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.xs),
             ],
           ),
         ),

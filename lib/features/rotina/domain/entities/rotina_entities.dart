@@ -242,6 +242,7 @@ class RotinaHabitoEntity extends Equatable {
       indicadorDependencia: 'MINHAS_ACOES',
       concluido: false,
       streakAtual: streakAtual,
+      diasSemana: diasSemana,
       pilar: pilar,
       checklists: checklists,
     );

@@ -145,13 +145,32 @@ void main() {
         // Streak deve ser incrementado otimisticamente para 6d
         expect(find.text('6d'), findsOneWidget);
 
-        // 4. Testa botão de Novo Hábito no Header
-        await tester.tap(find.byKey(const Key('novo_habito_button')));
+        // 4. Verifica que o FAB lado a lado exibe "Novo Hábito" e "Nova Atividade"
+        expect(find.byKey(const Key('novo_habito_fab')), findsOneWidget);
+        expect(find.byKey(const Key('nova_atividade_fab')), findsOneWidget);
+
+        // 5. Abre HabitFormSheet clicando no FAB "Novo Hábito" e cria hábito sem campos nulos
+        await tester.tap(find.byKey(const Key('novo_habito_fab')));
         await tester.pumpAndSettle();
 
         expect(find.byType(HabitFormSheet), findsOneWidget);
         expect(find.byKey(const Key('habit_name_field')), findsOneWidget);
         expect(find.byKey(const Key('save_habit_button')), findsOneWidget);
+        expect(find.byKey(const Key('cancel_habit_button')), findsOneWidget);
+
+        await tester.enterText(
+          find.byKey(const Key('habit_name_field')),
+          'Leitura de 20 páginas',
+        );
+        await tester.ensureVisible(find.byKey(const Key('save_habit_button')));
+        await tester.tap(find.byKey(const Key('save_habit_button')));
+        await tester.pumpAndSettle();
+
+        expect(fakeRepo.createdHabits.length, 1);
+        final Map<String, dynamic> createdPayload = fakeRepo.createdHabits.first;
+        expect(createdPayload['nome'], 'Leitura de 20 páginas');
+        expect(createdPayload.containsKey('descricao'), isFalse);
+        expect(createdPayload.containsKey('horarioPadrao'), isFalse);
       },
     );
   });
