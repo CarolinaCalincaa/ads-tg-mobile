@@ -41,5 +41,5 @@ abstract final class EnvConfig {
 
   /// Mensagem / Slogan oficial do aplicativo.
   static const String appTagline =
-      'Organize sua vida em torno do que importa.';
+      'Organize sua vida em torno do que realmente importa.';
 }
