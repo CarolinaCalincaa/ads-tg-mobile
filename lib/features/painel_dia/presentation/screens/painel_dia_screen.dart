@@ -10,10 +10,8 @@ import 'package:produtividade_tcc/features/habitos/presentation/widgets/habit_fo
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/painel_dia_bundle.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/painel_dia_notifier.dart';
-import 'package:produtividade_tcc/features/painel_dia/presentation/providers/pomodoro_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/selected_date_provider.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pillars_filter_row.dart';
-import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/active_pomodoro_mini_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/compact_capacity_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/date_navigator_bar.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/day_week_segmented_toggle.dart';
@@ -345,9 +343,6 @@ class PainelDiaScreen extends ConsumerWidget {
           ),
         ),
       ),
-      const ActivePomodoroMiniBar(),
-      if (ref.watch(pomodoroNotifierProvider).isActive)
-        const SizedBox(height: 68),
     ],
   ),
 ),

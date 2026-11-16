@@ -297,13 +297,6 @@ class RotinaTaskCard extends StatelessWidget {
                   label:
                       '${tarefa.concluidosChecklistItens}/${tarefa.totalChecklistItens}',
                 ),
-
-              // Pomodoros
-              if (tarefa.pomodorosConcluidos > 0)
-                _MetaBadge(
-                  icon: Icons.local_fire_department_rounded,
-                  label: '${tarefa.pomodorosConcluidos} 🍅',
-                ),
             ],
           ),
         ],

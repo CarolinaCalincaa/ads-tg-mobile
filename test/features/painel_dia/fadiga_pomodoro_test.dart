@@ -471,7 +471,7 @@ void main() {
     });
 
     testWidgets(
-      'inicia Pomodoro pelo botão ▶, minimiza para ActivePomodoroMiniBar e conclui ciclo',
+      'não exibe botão iniciador de Pomodoro nos cards de tarefas e mantém PomodoroPlayerSheet funcional isoladamente',
       (tester) async {
         final itemTarefa = _criarTarefaExemplo(id: 't-pom-widget');
         final bundle = PainelDiaBundle(
@@ -509,47 +509,11 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // 1. Toca no botão ▶ para abrir o PomodoroPlayerSheet
+        // 1. Verifica que o botão ▶ de iniciar Pomodoro não está mais acessível no card
         final playBtn = find.byKey(const Key('iniciar_pomodoro_t-pom-widget'));
-        expect(playBtn, findsOneWidget);
-
-        await tester.tap(playBtn);
-        await tester.pumpAndSettle();
-
-        // 2. Valida player sheet aberto com contador 25:00 e título
-        expect(find.byType(PomodoroPlayerSheet), findsOneWidget);
-        expect(find.byKey(const Key('pomodoro_countdown_text')), findsOneWidget);
-        final countdownWidget = tester.widget<Text>(
-          find.byKey(const Key('pomodoro_countdown_text')),
-        );
-        expect(countdownWidget.data, equals('25:00'));
-        expect(find.text('Implementar RN02 e Pomodoro'), findsWidgets);
-
-        // 3. Minimiza o player sheet
-        await tester.tap(find.byKey(const Key('minimizar_pomodoro_btn')));
-        await tester.pumpAndSettle();
-
-        // 4. Valida exibição da ActivePomodoroMiniBar flutuante
-        expect(find.byType(ActivePomodoroMiniBar), findsOneWidget);
-        expect(find.byKey(const Key('mini_bar_countdown_text')), findsOneWidget);
-        final miniBarCountdown = tester.widget<Text>(
-          find.byKey(const Key('mini_bar_countdown_text')),
-        );
-        expect(miniBarCountdown.data, equals('25:00'));
-        expect(find.byKey(const Key('mini_bar_play_pause_btn')), findsOneWidget);
-
-        // 5. Reabre o player tocando na ActivePomodoroMiniBar
-        await tester.tap(find.byType(ActivePomodoroMiniBar));
-        await tester.pumpAndSettle();
-
-        expect(find.byType(PomodoroPlayerSheet), findsOneWidget);
-
-        // 6. Conclui o ciclo antecipadamente
-        await tester.tap(find.byKey(const Key('pomodoro_complete_early_btn')));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Parabéns! 25 minutos concluídos.'), findsOneWidget);
-        expect(repo.sessoesPomodoro.length, equals(1));
+        expect(playBtn, findsNothing);
+        expect(find.byType(ActivePomodoroMiniBar), findsNothing);
+        expect(find.byType(PomodoroPlayerSheet), findsNothing);
       },
     );
   });

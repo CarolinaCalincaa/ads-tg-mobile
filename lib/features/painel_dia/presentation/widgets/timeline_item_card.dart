@@ -8,10 +8,8 @@ import 'package:produtividade_tcc/core/widgets/pilar_chip.dart';
 import 'package:produtividade_tcc/core/widgets/priority_badge.dart';
 import 'package:produtividade_tcc/features/painel_dia/domain/entities/timeline_item_entity.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/providers/painel_dia_notifier.dart';
-import 'package:produtividade_tcc/features/painel_dia/presentation/providers/pomodoro_notifier.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/animated_circle_checkbox.dart';
 import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/inline_checklist_accordion.dart';
-import 'package:produtividade_tcc/features/painel_dia/presentation/widgets/pomodoro_player_sheet.dart';
 
 class TimelineItemCard extends ConsumerWidget {
   const TimelineItemCard({
@@ -111,33 +109,6 @@ class TimelineItemCard extends ConsumerWidget {
                     ),
                   ),
                 ],
-              ],
-              if (!item.ehHabito && !item.concluido) ...<Widget>[
-                IconButton(
-                  key: Key('iniciar_pomodoro_${item.id}'),
-                  icon: const Icon(
-                    Icons.play_circle_outline_rounded,
-                    size: 22,
-                    color: AppColors.primaryBrand,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  tooltip: 'Iniciar Pomodoro',
-                  onPressed: () {
-                    ref.read(pomodoroNotifierProvider.notifier).start(item);
-                    showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: AppColors.surfaceCard,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      builder: (context) => const PomodoroPlayerSheet(),
-                    );
-                  },
-                ),
-                const SizedBox(width: AppSpacing.xs),
               ],
               PopupMenuButton<String>(
                 icon: const Icon(
@@ -361,25 +332,6 @@ class TimelineItemCard extends ConsumerWidget {
                   ),
                 );
               }),
-
-              // Pomodoros
-              if (item.pomodorosConcluidos > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: 2,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: AppColors.surfaceSubtle,
-                    borderRadius: AppSpacing.chipRadius,
-                  ),
-                  child: Text(
-                    '🍅 ${item.pomodorosConcluidos}',
-                    style: AppTypography.chipLabel.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
             ],
           ),
 
