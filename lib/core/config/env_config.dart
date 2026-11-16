@@ -37,5 +37,9 @@ abstract final class EnvConfig {
   static const Duration receiveTimeout = Duration(seconds: 15);
 
   /// Nome de exibição da aplicação.
-  static const String appName = 'Calma Cognitiva';
+  static const String appName = 'Eixo';
+
+  /// Mensagem / Slogan oficial do aplicativo.
+  static const String appTagline =
+      'Organize sua vida em torno do que importa.';
 }

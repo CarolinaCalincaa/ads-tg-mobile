@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:produtividade_tcc/core/config/env_config.dart';
 import 'package:produtividade_tcc/core/router/app_router.dart';
 import 'package:produtividade_tcc/core/theme/app_colors.dart';
 import 'package:produtividade_tcc/core/theme/app_spacing.dart';
 import 'package:produtividade_tcc/core/theme/app_typography.dart';
 import 'package:produtividade_tcc/core/widgets/app_card.dart';
+import 'package:produtividade_tcc/core/widgets/app_logo.dart';
 import 'package:produtividade_tcc/core/widgets/primary_gradient_button.dart';
 import 'package:produtividade_tcc/features/auth/presentation/providers/auth_notifier.dart';
 import 'package:produtividade_tcc/features/auth/presentation/widgets/oauth_buttons_row.dart';
@@ -138,32 +140,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Center(
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: const BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.spa_rounded,
-                        color: AppColors.surfaceCard,
-                        size: 32,
-                      ),
-                    ),
+                  const Center(
+                    child: AppLogo(size: 72),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Calma Cognitiva',
+                    EnvConfig.appName,
                     textAlign: TextAlign.center,
-                    style: AppTypography.displayLarge,
+                    style: AppTypography.displayLarge.copyWith(
+                      fontSize: 38,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
-                    'Produtividade pessoal equilibrada, sem sobrecarga mental.',
+                    EnvConfig.appTagline,
                     textAlign: TextAlign.center,
-                    style: AppTypography.bodyMedium,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   AppCard(

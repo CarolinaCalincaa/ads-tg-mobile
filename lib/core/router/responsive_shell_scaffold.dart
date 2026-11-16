@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:produtividade_tcc/core/config/env_config.dart';
 import 'package:produtividade_tcc/core/theme/app_colors.dart';
 import 'package:produtividade_tcc/core/theme/app_spacing.dart';
 import 'package:produtividade_tcc/core/theme/app_typography.dart';
+import 'package:produtividade_tcc/core/widgets/app_logo.dart';
 
 /// Metadados de cada destino de navegação principal (4 abas canônicas do TCC).
 class ShellDestination {
@@ -115,24 +117,14 @@ class ResponsiveShellScaffold extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.spa_rounded,
-                          color: AppColors.surfaceCard,
-                          size: 20,
-                        ),
-                      ),
+                      const AppLogo(size: 32, showShadow: false),
                       if (isDesktopExpanded) ...<Widget>[
                         const SizedBox(width: AppSpacing.xs),
                         Text(
-                          'Calma Cognitiva',
-                          style: AppTypography.cardTitle,
+                          EnvConfig.appName,
+                          style: AppTypography.cardTitle.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ],
                     ],
